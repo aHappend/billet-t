@@ -18,6 +18,8 @@
   "billet-t1/rtl/billet_t1_twiddle_rom.sv",
   "billet-t1/tests/verify.py",
   "billet-t2/README.md",
+  "billet-t2/REPORT.pdf",
+  "billet-t2/REPORT.tex",
   "billet-t2/STATUS.json",
   "billet-t2/billet_t1_reference/rtl/billet_t1_bitrev.sv",
   "billet-t2/billet_t1_reference/rtl/billet_t1_buffer_sched.sv",

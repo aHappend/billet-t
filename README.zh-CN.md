@@ -13,8 +13,8 @@
 | Generation | Design | Scope | Engineering status | Product report |
 |---|---|---|---|---|
 | 1 | [BILLET-T1](billet-t1/) | 256-point fixed-point complex FFT with explicit numeric and buffer rules | Engineering accepted | [PDF](billet-t1/REPORT.pdf) |
-| 2 | [BILLET-T2](billet-t2/) | Configurable FFT/IFFT lengths and scaling | Engineering accepted | Pending |
-| 3 | [BILLET-T3](billet-t3/) | Multichannel windowing, overlap processing and power spectra | Not accepted (planning) | Pending |
+| 2 | [BILLET-T2](billet-t2/) | Configurable FFT/IFFT lengths and scaling | Engineering accepted | [PDF](billet-t2/REPORT.pdf) |
+| 3 | [BILLET-T3](billet-t3/) | Multichannel windowing, overlap processing and power spectra | Not accepted (designer) | Pending |
 
 `Engineering accepted` 表示原生工程验收已通过；`Not accepted` 表示尚未验收；`Pending` 表示报告尚未发布。规划不算成果，后续代际不覆盖前代目录。
 
