@@ -2,7 +2,7 @@
 
 Multichannel windowing, overlap processing and power spectra.
 
-**Status:** Not accepted (planned).
+**Status:** Not accepted (planning).
 
 The independently reviewed product report has not been published yet.
 

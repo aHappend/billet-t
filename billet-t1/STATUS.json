@@ -16,5 +16,25 @@
       "check": "check:synthesis",
       "status": "passed"
     }
+  ],
+  "reproduce": [
+    [
+      "python3",
+      "tests/verify.py",
+      "--check",
+      "behavior"
+    ],
+    [
+      "python3",
+      "tests/verify.py",
+      "--check",
+      "mutations"
+    ],
+    [
+      "python3",
+      "tests/verify.py",
+      "--check",
+      "synthesis"
+    ]
   ]
 }

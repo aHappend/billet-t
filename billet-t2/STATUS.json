@@ -12,5 +12,23 @@
       "check": "check:synthesis",
       "status": "passed"
     }
+  ],
+  "reproduce": [
+    [
+      "python3",
+      "tests/verify.py",
+      "--check",
+      "behavior",
+      "--output-dir",
+      "evidence/verification/behavior"
+    ],
+    [
+      "python3",
+      "tests/verify.py",
+      "--check",
+      "synthesis",
+      "--output-dir",
+      "evidence/verification/synthesis"
+    ]
   ]
 }
