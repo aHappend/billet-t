@@ -1,0 +1,20 @@
+{
+  "chip": "BILLET-T1",
+  "phase": "completed",
+  "engineering_accepted": true,
+  "report_published": true,
+  "checks": [
+    {
+      "check": "check:behavior",
+      "status": "passed"
+    },
+    {
+      "check": "check:mutations",
+      "status": "passed"
+    },
+    {
+      "check": "check:synthesis",
+      "status": "passed"
+    }
+  ]
+}

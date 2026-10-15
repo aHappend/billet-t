@@ -1,0 +1,385 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=22mm,headheight=14pt]{geometry}
+
+\usepackage{longtable,booktabs,array,hyperref,xcolor,tikz,fancyhdr}
+
+\usepackage{fontspec,xeCJK}
+
+\setmainfont[Ligatures=TeXOff]{Times New Roman}
+
+\setsansfont[Ligatures=TeXOff]{Times New Roman}
+
+\setmonofont[Ligatures=TeXOff,WordSpace={1,1,1}]{Times New Roman}
+
+\setCJKmainfont{Noto Serif CJK SC}
+
+\setCJKsansfont{Noto Serif CJK SC}
+
+\setCJKmonofont{Noto Serif CJK SC}
+
+\XeTeXgenerateactualtext=1
+
+\definecolor{vulcan}{HTML}{BB3E23}
+
+\pgfdeclarelayer{connections}\pgfdeclarelayer{edge labels}\pgfsetlayers{connections,main,edge labels}
+
+\hypersetup{hidelinks}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\setlength{\emergencystretch}{5em}\tolerance=2000\hbadness=10000
+
+\setlength{\parindent}{0pt}\setlength{\parskip}{5pt}
+
+\pagestyle{fancy}\fancyhf{}\fancyhead[L]{\small\sffamily VULCAN}
+
+\fancyhead[R]{\small Product design and verification}\fancyfoot[C]{\thepage}
+
+\begin{document}
+
+{\sffamily\huge\raggedright\textbf{BILLET-T1: Parameterized Fixed-Point Complex FFT RTL IP}\par}
+
+{\large Technical Design and Verification Report}\par
+
+16 October 2026 (\allowbreak{}UTC+\allowbreak{}8)\allowbreak{}\par\textcolor{vulcan}{\rule{\textwidth}{0.5pt}}
+
+\begin{abstract}
+
+BILLET-T1 implements a forward complex radix-2 FFT with signed 16-bit Q1.15 input and output,\allowbreak{} natural-order streaming interfaces,\allowbreak{} deterministic floor quantization and nominal 1/\allowbreak{}N normalization. The default transform length is 256; supported lengths are powers of two from 2 through 256. The delivered product is technology-independent RTL IP for integration into a larger digital system,\allowbreak{} not a fabricated or physically signed-off chip.
+
+
+A single reused butterfly operates on two ping-pong sample banks under an explicit synchronous READ/\allowbreak{}WRITE schedule. Independent verification at N=\allowbreak{}2,\allowbreak{}16,\allowbreak{}64,\allowbreak{}256 compared 9,\allowbreak{}454 accepted complex outputs against a separately authored integer oracle with zero scalar mismatches. Every designated rail-safe quality frame met cosine similarity >=\allowbreak{}0.999 and SQNR >=\allowbreak{}30 dB against a direct floating-point DFT. Four functional mutations were detected,\allowbreak{} and generic synthesis reported zero latches at all four required sizes. These results are supported by E014–E016.
+
+
+\end{abstract}
+
+\section{Architecture and design rationale}
+
+The architecture favors explicit memory ownership and deterministic timing over overlapping frames or maximum throughput. Natural-order inputs are stored at bit-reversed addresses in bank 0. Each decimation-in-time stage reads two operands from one bank and writes two results to the other on the following edge. Bank ownership changes only after the stage finishes. One combinational butterfly supplies four signed real multiplications,\allowbreak{} widened additions,\allowbreak{} unconditional stage scaling and final component clamps. The top literally instantiates the scheduler,\allowbreak{} bit-reversal unit,\allowbreak{} twiddle ROM and butterfly; the package supplies shared numerical constants. The two sample banks contain 64*\allowbreak{}N bits in total,\allowbreak{} or 16,\allowbreak{}384 bits at N=\allowbreak{}256,\allowbreak{} excluding holding registers. Their logical two-port organization does not imply a particular SRAM macro mapping. E001–E008 describe and implement these responsibilities.
+
+\begin{center}\begin{tikzpicture}[every node/.style={font=\small\sffamily},>=latex]
+
+\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b0) at (0.0,0.0) {B1: Scheduler};
+
+\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b1) at (5.4,0.0) {B2: Bit reversal};
+
+\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b2) at (10.8,0.0) {B3: Twiddle ROM};
+
+\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b3) at (0.0,-4.6) {B4: Sample banks};
+
+\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b4) at (5.4,-4.6) {B5: Butterfly};
+
+\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b5) at (10.8,-4.6) {B6: Output and telemetry};
+
+\begin{pgfonlayer}{connections}
+
+\draw[->,black!65] ([yshift=-0.160cm]b0.east) -- coordinate[pos=0.25] (e0) ([yshift=0.000cm]b1.west);
+
+\draw[->,black!65,rounded corners=2pt] ([yshift=0.000cm]b1.east) -- (7.820,0.000) -- (7.820,-3.210) -- coordinate[midway] (e1) (-0.480,-3.210) -- ([xshift=-0.480cm]b3.north);
+
+\draw[->,black!65,rounded corners=2pt] ([yshift=0.000cm]b0.east) -- (2.500,0.000) -- (2.500,-2.950) -- coordinate[midway] (e2) (10.400,-2.950) -- ([xshift=-0.400cm]b2.south);
+
+\draw[->,black!65] ([xshift=-0.160cm]b0.south) -- coordinate[pos=0.25] (e3) ([xshift=0.160cm]b3.north);
+
+\draw[->,black!65,rounded corners=2pt] ([yshift=-0.107cm]b3.east) -- (2.660,-4.707) -- (2.660,-7.030) -- coordinate[midway] (e4) (5.133,-7.030) -- ([xshift=-0.267cm]b4.south);
+
+\draw[->,black!65,rounded corners=2pt] ([yshift=0.000cm]b2.east) -- (13.540,0.000) -- (13.540,-2.170) -- coordinate[midway] (e5) (5.667,-2.170) -- ([xshift=0.267cm]b4.north);
+
+\draw[->,black!65,rounded corners=2pt] ([yshift=-0.107cm]b4.east) -- (8.220,-4.707) -- (8.220,-6.510) -- coordinate[midway] (e6) (0.480,-6.510) -- ([xshift=0.480cm]b3.south);
+
+\draw[->,black!65,rounded corners=2pt] ([yshift=0.107cm]b3.east) -- (2.900,-4.493) -- (2.900,-6.250) -- coordinate[midway] (e7) (10.800,-6.250) -- ([xshift=0.000cm]b5.south);
+
+\draw[->,black!65] ([yshift=0.107cm]b4.east) -- coordinate[pos=0.25] (e8) ([yshift=0.000cm]b5.west);
+
+\draw[->,black!65,rounded corners=2pt] ([yshift=0.160cm]b0.east) -- (3.060,0.160) -- (3.060,-1.130) -- coordinate[midway] (e9) (11.200,-1.130) -- ([xshift=0.400cm]b5.north);
+
+\end{pgfonlayer}
+
+\begin{pgfonlayer}{edge labels}
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e0) {E1};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e1) {E2};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e2) {E3};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e3) {E4};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e4) {E5};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e5) {E6};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e6) {E7};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e7) {E8};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e8) {E9};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e9) {E10};
+
+\end{pgfonlayer}
+
+\end{tikzpicture}\end{center}
+
+{\small Functional block map, not a gate-level netlist. Edge identifiers match the directed relationships below. Crossings do not denote junctions; separate attachment points preserve arrow directions.}
+
+{\small\begin{longtable}{@{}L{0.24\textwidth}L{0.7\textwidth}@{}}\toprule
+
+\textbf{Block} & \textbf{Responsi\allowbreak{}bility}\\\midrule\endhead
+
+B1: Schedule\allowbreak{}r & billet\_\allowbreak{}t1\_\allowbreak{}buffer\_\allowbreak{}sched sequence\allowbreak{}s LOAD,\allowbreak{} READ,\allowbreak{} WRITE,\allowbreak{} FETCH and SEND; counts accepted samples; generate\allowbreak{}s stage addresse\allowbreak{}s; controls bank ownershi\allowbreak{}p; and implemen\allowbreak{}ts output handshak\allowbreak{}ing and completi\allowbreak{}on.\\[3pt]
+
+B2: Bit reversal & billet\_\allowbreak{}t1\_\allowbreak{}bitrev reverses exactly LOG2\_\allowbreak{}N bits of the natural load index,\allowbreak{} placing accepted inputs in the order required by the iterativ\allowbreak{}e decimati\allowbreak{}on-in-time transfor\allowbreak{}m.\\[3pt]
+
+B3: Twiddle ROM & billet\_\allowbreak{}t1\_\allowbreak{}twiddle\_\allowbreak{}rom supplies literal signed Q1.15 forward-transfor\allowbreak{}m coeffici\allowbreak{}ents. Smaller transfor\allowbreak{}ms select a stride through the exact 256-point half-circle table.\\[3pt]
+
+B4: Sample banks & Two N-deep banks in billet\_\allowbreak{}t1\_\allowbreak{}top store packed 32-bit complex samples. Synchron\allowbreak{}ous reads capture operand pairs; alternat\allowbreak{}e-bank writes commit butterfl\allowbreak{}y results without read-during-write dependen\allowbreak{}ce.\\[3pt]
+
+B5: Butterfl\allowbreak{}y & billet\_\allowbreak{}t1\_\allowbreak{}butterfl\allowbreak{}y calculat\allowbreak{}es the complex product,\allowbreak{} floor quantiza\allowbreak{}tion,\allowbreak{} divide-by-two scaling and four signed clamps. Its sat\_\allowbreak{}inc output reports scalar clamp events.\\[3pt]
+
+B6: Output and telemetr\allowbreak{}y & Top-level logic reuses the port-A operand register as the output holding register,\allowbreak{} masks invalid payloads to zero,\allowbreak{} and maintain\allowbreak{}s reset-cleared sticky saturati\allowbreak{}on telemetr\allowbreak{}y.\\[3pt]
+
+\bottomrule\end{longtable}}
+
+{\small\begin{longtable}{@{}L{0.24\textwidth}L{0.7\textwidth}@{}}\toprule
+
+\textbf{Directed relation\allowbreak{}ship} & \textbf{Meaning}\\\midrule\endhead
+
+E1: B1 to B2 & Natural load index\\[3pt]
+
+E2: B2 to B4 & Bit-reversed load address\\[3pt]
+
+E3: B1 to B3 & Stage coeffici\allowbreak{}ent address\\[3pt]
+
+E4: B1 to B4 & Bank selectio\allowbreak{}n,\allowbreak{} addresse\allowbreak{}s and phase enables\\[3pt]
+
+E5: B4 to B5 & Register\allowbreak{}ed source operands\\[3pt]
+
+E6: B3 to B5 & Complex coeffici\allowbreak{}ent\\[3pt]
+
+E7: B5 to B4 & Two destinat\allowbreak{}ion results on WRITE\\[3pt]
+
+E8: B4 to B6 & Final-bank output fetch\\[3pt]
+
+E9: B5 to B6 & Clamp incremen\allowbreak{}t,\allowbreak{} accumula\allowbreak{}ted only on WRITE\\[3pt]
+
+E10: B1 to B6 & Output validity,\allowbreak{} bin index and completi\allowbreak{}on\\[3pt]
+
+\bottomrule\end{longtable}}
+
+\section{Interfaces and configuration}
+
+{\small\begin{longtable}{@{}L{0.2\textwidth}L{0.12\textwidth}L{0.1\textwidth}L{0.48\textwidth}@{}}\toprule
+
+\textbf{Signal /\allowbreak{} group} & \textbf{Directio\allowbreak{}n} & \textbf{Width} & \textbf{Contract}\\\midrule\endhead
+
+clk,\allowbreak{} rst\_\allowbreak{}n & Input & 1 bit each & Single clock and asynchro\allowbreak{}nous active-low reset. Reset override\allowbreak{}s transfer\allowbreak{}s,\allowbreak{} aborts the current transact\allowbreak{}ion and forces every public output to zero. Sample memories are not reset.\\[3pt]
+
+in\_\allowbreak{}valid,\allowbreak{} in\_\allowbreak{}ready & Input /\allowbreak{} output & 1 bit each & A sample is accepted on a rising edge only when both are high before the edge. in\_\allowbreak{}ready is asserted in LOAD after reset release and deassert\allowbreak{}ed througho\allowbreak{}ut computat\allowbreak{}ion and output.\\[3pt]
+
+in\_\allowbreak{}re,\allowbreak{} in\_\allowbreak{}im,\allowbreak{} in\_\allowbreak{}last & Input & Two signed 16-bit componen\allowbreak{}ts; 1-bit marker & Natural-order Q1.15 samples. Exactly N\_\allowbreak{}POINTS accepted beats define a frame. in\_\allowbreak{}last is advisory and has no state or datapath effect; early or absent markers do not alter framing.\\[3pt]
+
+out\_\allowbreak{}valid,\allowbreak{} out\_\allowbreak{}ready & Output /\allowbreak{} input & 1 bit each & An output is consumed only on a rising-edge valid/\allowbreak{}ready handshak\allowbreak{}e. While valid is high and ready is low,\allowbreak{} payload,\allowbreak{} bin index and last remain stable.\\[3pt]
+
+out\_\allowbreak{}re,\allowbreak{} out\_\allowbreak{}im & Output & Two signed 16-bit componen\allowbreak{}ts & Q1.15 frequenc\allowbreak{}y-domain results with nominal 1/\allowbreak{}N scaling. Both componen\allowbreak{}ts are zero whenever out\_\allowbreak{}valid is zero.\\[3pt]
+
+out\_\allowbreak{}bin\_\allowbreak{}idx,\allowbreak{} out\_\allowbreak{}last & Output & A bits; 1 bit & Natural bin index 0 through N\_\allowbreak{}POINTS-1. out\_\allowbreak{}last accompan\allowbreak{}ies only the valid final bin. Both outputs are zero outside valid output cycles.\\[3pt]
+
+frame\_\allowbreak{}done & Output & 1 bit & One-cycle pulse immediat\allowbreak{}ely after the edge acceptin\allowbreak{}g the final output. in\_\allowbreak{}ready is simultan\allowbreak{}eously restored; the next frame can begin on the followin\allowbreak{}g edge.\\[3pt]
+
+saturati\allowbreak{}on\_\allowbreak{}count,\allowbreak{} overflow\_\allowbreak{}flag & Output & Unsigned 32 bits; 1 bit & Sticky scalar clamp count and sticky indicati\allowbreak{}on of any clamp. Count incremen\allowbreak{}ts by 0..4 per committe\allowbreak{}d butterfl\allowbreak{}y and saturate\allowbreak{}s at 0xfffffff\allowbreak{}f. Both clear only on reset.\\[3pt]
+
+\bottomrule\end{longtable}}
+
+{\small\begin{longtable}{@{}L{0.23\textwidth}L{0.12\textwidth}L{0.57\textwidth}@{}}\toprule
+
+\textbf{Paramete\allowbreak{}r} & \textbf{Default} & \textbf{Meaning /\allowbreak{} supporte\allowbreak{}d values}\\\midrule\endhead
+
+N\_\allowbreak{}POINTS & 256 & Legal values are 2,\allowbreak{}4,\allowbreak{}8,\allowbreak{}16,\allowbreak{}32,\allowbreak{}64,\allowbreak{}128,\allowbreak{}256. Full transfor\allowbreak{}m behavior and synthesi\allowbreak{}s were exercise\allowbreak{}d at 2,\allowbreak{}16,\allowbreak{}64,\allowbreak{}256; coeffici\allowbreak{}ent and permutat\allowbreak{}ion units were exercise\allowbreak{}d at every legal size.\\[3pt]
+
+LOG2\_\allowbreak{}N & \$clog2(\allowbreak{}N\_\allowbreak{}POINTS)\allowbreak{} for legal configur\allowbreak{}ations & Derived stage count; must not be overridd\allowbreak{}en inconsis\allowbreak{}tently. The implemen\allowbreak{}tation uses a diagnost\allowbreak{}ic-safe fallback of 1 when N\_\allowbreak{}POINTS<=\allowbreak{}1,\allowbreak{} without supporti\allowbreak{}ng those configur\allowbreak{}ations.\\[3pt]
+
+Derived widths A and S & A=\allowbreak{}max(\allowbreak{}1,\allowbreak{}LOG2\_\allowbreak{}N)\allowbreak{}; S=\allowbreak{}max(\allowbreak{}1,\allowbreak{}\$clog2(\allowbreak{}LOG2\_\allowbreak{}N)\allowbreak{})\allowbreak{} & A sizes sample addresse\allowbreak{}s and bin indices; S sizes stage indices. Minimum widths preserve the legal one-stage N=\allowbreak{}2 boundary. Invalid configur\allowbreak{}ations select an inert branch with an explicit simulati\allowbreak{}on paramete\allowbreak{}r diagnost\allowbreak{}ic.\\[3pt]
+
+\bottomrule\end{longtable}}
+
+\section{Behavior and corner cases}
+
+\subsection{Coefficient and arithmetic contract}
+
+Each code represents its signed integer value divided by 32768. For k=\allowbreak{}0..N/\allowbreak{}2-1,\allowbreak{} coefficient components are clamp16(\allowbreak{}round\_\allowbreak{}half\_\allowbreak{}away\_\allowbreak{}from\_\allowbreak{}zero(\allowbreak{}32768*\allowbreak{}cos(\allowbreak{}2*\allowbreak{}pi*\allowbreak{}k/\allowbreak{}N)\allowbreak{})\allowbreak{})\allowbreak{} and clamp16(\allowbreak{}round\_\allowbreak{}half\_\allowbreak{}away\_\allowbreak{}from\_\allowbreak{}zero(\allowbreak{}-32768*\allowbreak{}sin(\allowbreak{}2*\allowbreak{}pi*\allowbreak{}k/\allowbreak{}N)\allowbreak{})\allowbreak{})\allowbreak{}. Thus +\allowbreak{}1 maps to 32767 and -1 to -32768. Four exact 16x16-to-32-bit products form P\_\allowbreak{}re=\allowbreak{}B\_\allowbreak{}re*\allowbreak{}W\_\allowbreak{}re-B\_\allowbreak{}im*\allowbreak{}W\_\allowbreak{}im and P\_\allowbreak{}im=\allowbreak{}B\_\allowbreak{}re*\allowbreak{}W\_\allowbreak{}im+\allowbreak{}B\_\allowbreak{}im*\allowbreak{}W\_\allowbreak{}re after sign extension into 33 bits. For each component c,\allowbreak{} T\_\allowbreak{}c=\allowbreak{}floor(\allowbreak{}P\_\allowbreak{}c/\allowbreak{}32768)\allowbreak{},\allowbreak{} U\_\allowbreak{}c=\allowbreak{}floor(\allowbreak{}(\allowbreak{}A\_\allowbreak{}c+\allowbreak{}T\_\allowbreak{}c)\allowbreak{}/\allowbreak{}2)\allowbreak{},\allowbreak{} and V\_\allowbreak{}c=\allowbreak{}floor(\allowbreak{}(\allowbreak{}A\_\allowbreak{}c-T\_\allowbreak{}c)\allowbreak{}/\allowbreak{}2)\allowbreak{}. The latter sums use 34 bits. Only U and V are clamped to [\allowbreak{}-32768,\allowbreak{}32767]\allowbreak{}. Arithmetic shifts implement floor rounding,\allowbreak{} including for negative values; there is no rounding bias or premature narrowing. E002 and E005 define this exact contract.
+
+\subsection{Scaling and full-scale clipping}
+
+Every stage unconditionally divides by two,\allowbreak{} producing nominal 1/\allowbreak{}N normalization. This does not guarantee zero clipping for independently full-scale real and imaginary components: complex rotation can move a square-domain input beyond a component rail. The documented N=\allowbreak{}16 counterexample produces A=\allowbreak{}(\allowbreak{}-32767,\allowbreak{}-32767)\allowbreak{},\allowbreak{} T=\allowbreak{}(\allowbreak{}-46339,\allowbreak{}0)\allowbreak{},\allowbreak{} and an unbounded real U=\allowbreak{}-39553,\allowbreak{} which correctly clamps to -32768. Widened arithmetic prevents unintended intermediate wraparound; telemetry reports intentional clamps. Rail-safe quality cases and deliberately clipped stress cases therefore have distinct floating-point expectations.
+
+\subsection{Conflict-free stage schedule}
+
+For stage s,\allowbreak{} half=\allowbreak{}2\textasciicircum{}s,\allowbreak{} span=\allowbreak{}2\textasciicircum{}(\allowbreak{}s+\allowbreak{}1)\allowbreak{},\allowbreak{} a=\allowbreak{}base+\allowbreak{}j,\allowbreak{} b=\allowbreak{}a+\allowbreak{}half and k=\allowbreak{}j*\allowbreak{}N/\allowbreak{}span,\allowbreak{} with group bases separated by span and j=\allowbreak{}0..half-1. A READ edge captures both source operands; the following WRITE commits both results at distinct destination addresses. Addresses remain constant across the pair. Every address is covered once per stage,\allowbreak{} and the banks swap only after the final write. The final bank is LOG2\_\allowbreak{}N modulo 2. Scheduler outputs load\_\allowbreak{}we,\allowbreak{} stage\_\allowbreak{}read,\allowbreak{} stage\_\allowbreak{}write and output\_\allowbreak{}fetch identify impending edge operations; load\_\allowbreak{}addr is natural-order before the separate bit reversal. E001 and E004 document these internal integration semantics.
+
+\subsection{Exact edge latency}
+
+Let F accept the final input and C=\allowbreak{}N*\allowbreak{}LOG2\_\allowbreak{}N. F+\allowbreak{}1 captures the first operand pair; F+\allowbreak{}2 commits its results; F+\allowbreak{}C commits the final butterfly. F+\allowbreak{}C+\allowbreak{}1 fetches bin 0 and makes out\_\allowbreak{}valid high after the edge; its earliest handshake is F+\allowbreak{}C+\allowbreak{}2. A nonfinal handshake at H clears valid,\allowbreak{} H+\allowbreak{}1 fetches the next bin,\allowbreak{} and H+\allowbreak{}2 is its earliest handshake. Without output stalls,\allowbreak{} final acceptance is D=\allowbreak{}F+\allowbreak{}C+\allowbreak{}2*\allowbreak{}N: 6,\allowbreak{}96,\allowbreak{}512,\allowbreak{}2560 edges after F for N=\allowbreak{}2,\allowbreak{}16,\allowbreak{}64,\allowbreak{}256 respectively. At N=\allowbreak{}256,\allowbreak{} computation consumes 2048 edges and output fetch/\allowbreak{}send consumes 512. These are clock counts,\allowbreak{} not measured time or frequency.
+
+\subsection{Framing,\allowbreak{} stalls and reset}
+
+Input gaps are permitted,\allowbreak{} and subsequent frames may be continuously offered,\allowbreak{} but unaccepted input beats must remain stable. Frames are serialized without overlap. SEND performs no new fetch while stalled,\allowbreak{} so neither payload nor telemetry is repeatedly updated. Reset suppresses completion for aborted frames and clears holding registers and telemetry. A fresh complete frame initializes storage before any subsequent transform can expose data,\allowbreak{} preventing stale-frame leakage without resetting the banks.
+
+\section{Verification methods and measured results}
+
+\subsection{Bit-exact FFT results and telemetry}
+
+\textbf{Method.} Independent Python integer arithmetic reconstructed coefficients,\allowbreak{} stage scaling and clamp events. Icarus simulations exercised impulses,\allowbreak{} signed complex DC,\allowbreak{} nontrivial and near-Nyquist tones,\allowbreak{} multitone,\allowbreak{} seeded random,\allowbreak{} asymmetric,\allowbreak{} low-level and full-square inputs. The base seed was 2970740481; each size used base+\allowbreak{}N.
+
+\textbf{Result.} N=\allowbreak{}2 completed 23 frames and 46 outputs; N=\allowbreak{}16,\allowbreak{}64,\allowbreak{}256 each completed 28 frames and respectively 448,\allowbreak{}1792,\allowbreak{}7168 outputs. Across 107 completed frames and 9,\allowbreak{}454 complex outputs,\allowbreak{} scalar mismatches were zero and telemetry matched independent clamp accounting.
+
+{\small Evidence: E009,\allowbreak{} E014}
+
+\subsection{Per-frame numerical quality against an independent DFT}
+
+\textbf{Method.} A separate O(\allowbreak{}N\textasciicircum{}2)\allowbreak{} floating-point forward DFT divided by N evaluated actual quantized inputs. Preselected amplitudes included impulse 30000+\allowbreak{}j12000,\allowbreak{} DC 12000+\allowbreak{}j7000,\allowbreak{} tone radius 20000,\allowbreak{} multitone radii 9000/\allowbreak{}6000/\allowbreak{}4000 and random components within [\allowbreak{}-16000,\allowbreak{}16000]\allowbreak{}. Real and imaginary components formed one comparison vector.
+
+\textbf{Result.} Every designated quality frame at N=\allowbreak{}16,\allowbreak{}64,\allowbreak{}256 had zero clamps,\allowbreak{} cosine >=\allowbreak{}0.999 and SQNR >=\allowbreak{}30 dB. Representative bin-1 tones yielded SQNR 80.51/\allowbreak{}75.16/\allowbreak{}70.43 dB,\allowbreak{} cosine 0.999999997/\allowbreak{}0.999999990/\allowbreak{}0.999999967,\allowbreak{} maximum error 1.205/\allowbreak{}2.039/\allowbreak{}3.111 codes and RMSE 0.333/\allowbreak{}0.308/\allowbreak{}0.266 codes respectively. Complete per-frame metrics,\allowbreak{} including repeated reset-recovery frames,\allowbreak{} are retained in the behavior receipt.
+
+{\small Evidence: E009,\allowbreak{} E014}
+
+\subsection{Truthful full-scale and low-level behavior}
+
+\textbf{Method.} Full-square corner/\allowbreak{}random frames and a directed clipping counterexample retained integer exactness requirements while measuring floating error without imposing rail-safe quality thresholds.
+
+\textbf{Result.} The 256-point directed counterexample produced exactly one clamp,\allowbreak{} SQNR 16.69 dB and cosine 0.996219. The low-level case measured SQNR -21.37 dB and cosine 0.138854,\allowbreak{} illustrating quantization-dominated behavior rather than a hidden pass. Zero-frame error was zero; undefined zero-vector cosine remained null.
+
+{\small Evidence: E002,\allowbreak{} E014}
+
+\subsection{Streaming protocol,\allowbreak{} edge timing and memory scheduling}
+
+\textbf{Method.} Cycle-by-cycle public-pin comparisons checked pre-edge handshakes and post-edge outputs under input gaps,\allowbreak{} continuous busy-period demand,\allowbreak{} early/\allowbreak{}missing last markers,\allowbreak{} long/\allowbreak{}random first/\allowbreak{}final/\allowbreak{}middle-bin stalls and asynchronous reset during loading,\allowbreak{} computation and stalled output. Supplementary scheduler traces checked bounds,\allowbreak{} bank separation and stage address coverage.
+
+\textbf{Result.} All assertions passed at all four required sizes,\allowbreak{} including exact no-stall latency,\allowbreak{} output count/\allowbreak{}order,\allowbreak{} last/\allowbreak{}done placement and reset recovery. Active X/\allowbreak{}Z and malformed or missing traces were rejected. Preparation harness issues were resolved by separating reset driving from clock observation and recognizing only the exact simulator finish notice; numerical and protocol assertions were retained.
+
+{\small Evidence: E009,\allowbreak{} E013,\allowbreak{} E014,\allowbreak{} E017}
+
+\subsection{Primitive correctness and executable parameter rejection}
+
+\textbf{Method.} Public-port unit simulations independently reconstructed every used coefficient and bit-reversal mapping for all eight legal sizes. Butterfly vectors exercised arithmetic and clamps; invalid top configurations tested explicit diagnostics.
+
+\textbf{Result.} All 255 coefficient pairs and 510 permutation mappings matched. All 1,\allowbreak{}061 butterfly vectors matched,\allowbreak{} including 24 scalar clamp events. N=\allowbreak{}-4,\allowbreak{}0,\allowbreak{}1,\allowbreak{}3,\allowbreak{}15,\allowbreak{}257,\allowbreak{}512 and N=\allowbreak{}16 with LOG2\_\allowbreak{}N=\allowbreak{}3 each reached an explicit failing parameter diagnostic.
+
+{\small Evidence: E014}
+
+\subsection{Functional defect sensitivity}
+
+\textbf{Method.} Temporary RTL copies independently reversed twiddle imaginary sign,\allowbreak{} bypassed bit reversal,\allowbreak{} removed the real-U scaling shift or changed the imaginary cross-term addition to subtraction. Each ran the existing N=\allowbreak{}16 numerical discriminator against unchanged expectations.
+
+\textbf{Result.} All four mutations compiled and simulated successfully,\allowbreak{} then failed numerical assertions. For example,\allowbreak{} the scaling mutation produced bin-0 real -1046 instead of -67. Tool failures were not counted as detections,\allowbreak{} and accepted RTL remained unchanged.
+
+{\small Evidence: E009,\allowbreak{} E015}
+
+\subsection{Synthesizable connected hierarchy with zero latches}
+
+\textbf{Method.} Yosys 0.33 parsed the complete package-first source set,\allowbreak{} resolved hierarchy,\allowbreak{} lowered processes,\allowbreak{} synthesized N=\allowbreak{}2,\allowbreak{}16,\allowbreak{}64,\allowbreak{}256 and ran consistency checks. Machine-readable structural assertions inspected reachable state,\allowbreak{} both banks,\allowbreak{} multipliers and latch absence.
+
+\textbf{Result.} All four configurations passed. Lowered designs retained four multiplication cells; lowered and synthesized hierarchies each reported zero latches. Generic mapped bank storage contained 128,\allowbreak{}1024,\allowbreak{}4096,\allowbreak{}16384 enabled flip-flop bits respectively. The checker was repaired to traverse hierarchy and distinguish internal synthesis don't-care constants from active simulation unknowns; those structural requirements remained enforced.
+
+{\small Evidence: E009,\allowbreak{} E016,\allowbreak{} E017}
+
+\section{Integration and use}
+
+Use rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}top.sv as the integration boundary and design/\allowbreak{}SPEC.md plus design/\allowbreak{}ARCHITECTURE.md as the numerical,\allowbreak{} protocol and scheduling references. Compile in this explicit order: rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}pkg.sv,\allowbreak{} rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}twiddle\_\allowbreak{}rom.sv,\allowbreak{} rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}bitrev.sv,\allowbreak{} rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}butterfly.sv,\allowbreak{} rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}buffer\_\allowbreak{}sched.sv,\allowbreak{} rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}top.sv. No external coefficient file is required.
+
+
+A static default-top invocation is \texttt{iverilog -g2012 -t null -s billet\_\allowbreak{}t1\_\allowbreak{}top rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}pkg.sv rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}twiddle\_\allowbreak{}rom.sv rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}bitrev.sv rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}butterfly.sv rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}buffer\_\allowbreak{}sched.sv rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}top.sv}. Select a smaller instance with,\allowbreak{} for example,\allowbreak{} \texttt{-Pbillet\_\allowbreak{}t1\_\allowbreak{}top.N\_\allowbreak{}POINTS=\allowbreak{}16}; leave derived widths consistent.
+
+
+Assert rst\_\allowbreak{}n low before use,\allowbreak{} then release reset and supply exactly N\_\allowbreak{}POINTS accepted samples per frame. Hold each offered sample until acceptance. Mark the expected final sample with in\_\allowbreak{}last,\allowbreak{} but do not use that marker to request variable-length transforms. Consume outputs by out\_\allowbreak{}valid/\allowbreak{}out\_\allowbreak{}ready,\allowbreak{} using out\_\allowbreak{}bin\_\allowbreak{}idx for bin identity.
+
+
+Run \texttt{python3 tests/\allowbreak{}verify.py} for the complete delivered acceptance entry point,\allowbreak{} or use \texttt{--check behavior},\allowbreak{} \texttt{--check mutations} and \texttt{--check synthesis} for the individual checks. The recorded checks used Python 3.12.3,\allowbreak{} Icarus Verilog/\allowbreak{}vvp 12.0 and Yosys 0.33; Python requires only its standard library. Generated bridges,\allowbreak{} raw outputs,\allowbreak{} source hashes and metrics reside under evidence/\allowbreak{}verification/\allowbreak{}.
+
+
+Existing execution demonstrates the declared checks in this project environment. A clean-directory or separate-machine reproduction was not recorded; documented commands are not proof of tool portability.
+
+
+\section{Limitations and acceptance boundary}
+
+The product is verified RTL IP,\allowbreak{} not silicon. No target library,\allowbreak{} SRAM macro binding,\allowbreak{} clock-frequency result,\allowbreak{} timing closure,\allowbreak{} power estimate,\allowbreak{} physical area,\allowbreak{} FPGA demonstration or fabrication sign-off is established.
+
+
+The engine has one reused butterfly,\allowbreak{} no inter-frame overlap and one fetch bubble between accepted output bins. Backpressure extends latency; no finite completion time is promised if the consumer withholds readiness indefinitely.
+
+
+Normalization is nominal because coefficients and intermediate arithmetic are quantized. Independently full-scale complex inputs can intentionally clip despite stage halving. Low-level transforms can have poor floating-point SQNR while remaining exactly correct under the integer contract.
+
+
+Full transform simulation and synthesis cover N=\allowbreak{}2,\allowbreak{}16,\allowbreak{}64,\allowbreak{}256. The other legal lengths have exhaustive coefficient/\allowbreak{}permutation unit coverage,\allowbreak{} not the same complete end-to-end matrix. Finite seeded testing and four mutations do not constitute exhaustive formal proof,\allowbreak{} including proof of every long-duration telemetry-counter state.
+
+
+The interface has fixed-count framing,\allowbreak{} no malformed-marker error output,\allowbreak{} no inverse-transform mode and no clock-domain crossing support. Generic register-mapped synthesis does not establish efficient technology-specific memory inference.
+
+
+\appendix\section{Source inventory}
+
+Production inventory: 6 Verilog/\allowbreak{}SystemVerilog files; 470 nonblank,\allowbreak{} non-comment lines. Source size is not a correctness or quality metric.
+
+{\small\begin{longtable}{@{}L{0.61\textwidth}L{0.15\textwidth}L{0.15\textwidth}@{}}\toprule
+
+\textbf{Producti\allowbreak{}on file} & \textbf{Physical lines} & \textbf{Code lines}\\\midrule\endhead
+
+rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}bitrev.sv & 21 & 21\\[3pt]
+
+rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}buffer\_\allowbreak{}sched.sv & 126 & 124\\[3pt]
+
+rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}butterfl\allowbreak{}y.sv & 54 & 51\\[3pt]
+
+rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}pkg.sv & 9 & 9\\[3pt]
+
+rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}top.sv & 114 & 109\\[3pt]
+
+rtl/\allowbreak{}billet\_\allowbreak{}t1\_\allowbreak{}twiddle\_\allowbreak{}rom.sv & 156 & 156\\[3pt]
+
+\bottomrule\end{longtable}}
+
+\section{Verification record index}
+
+{\small\begin{longtable}{@{}L{0.57\textwidth}L{0.16\textwidth}L{0.17\textwidth}@{}}\toprule
+
+\textbf{Recorded check} & \textbf{Outcome} & \textbf{Executio\allowbreak{}n time (\allowbreak{}s)\allowbreak{}}\\\midrule\endhead
+
+behavior & passed & 23.446\\[3pt]
+
+mutation\allowbreak{}s & passed & 1.432\\[3pt]
+
+synthesi\allowbreak{}s & passed & 44.514\\[3pt]
+
+\bottomrule\end{longtable}}
+
+Execution times include tool and provider waiting; they are not hardware latency or model utilization.
+
+{\small\begin{longtable}{@{}L{0.12\textwidth}L{0.82\textwidth}@{}}\toprule
+
+\textbf{Referenc\allowbreak{}e} & \textbf{Original project-relative record}\\\midrule\endhead
+
+E002 & design/\allowbreak{}SPEC.md\\[3pt]
+
+E009 & tests/\allowbreak{}verify.py\\[3pt]
+
+E013 & .vulcan/\allowbreak{}engineer\allowbreak{}ing/\allowbreak{}run-0001/\allowbreak{}attempt-0002/\allowbreak{}response.json\\[3pt]
+
+E014 & .vulcan/\allowbreak{}engineer\allowbreak{}ing/\allowbreak{}run-0001/\allowbreak{}attempt-0003/\allowbreak{}stdout.log\\[3pt]
+
+E015 & .vulcan/\allowbreak{}engineer\allowbreak{}ing/\allowbreak{}run-0001/\allowbreak{}attempt-0004/\allowbreak{}stdout.log\\[3pt]
+
+E016 & .vulcan/\allowbreak{}engineer\allowbreak{}ing/\allowbreak{}run-0001/\allowbreak{}attempt-0005/\allowbreak{}stdout.log\\[3pt]
+
+E017 & .vulcan/\allowbreak{}engineer\allowbreak{}ing/\allowbreak{}run-0001/\allowbreak{}attempt-0006/\allowbreak{}response.json\\[3pt]
+
+\bottomrule\end{longtable}}
+
+\section{Document provenance}
+
+Engineering was independently accepted for the recorded source and evidence identity. This is not exhaustive proof, hardware deployment or physical signoff. The companion REPORT.md records the exact report approval and source manifest, and links the English/Chinese journeys containing original failures and interventions. A report number identifies a generation attempt, not a new hardware revision.
+
+No developer attribution was supplied; none has been inferred.
+
+\end{document}
