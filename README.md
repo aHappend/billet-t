@@ -14,7 +14,7 @@ This repository publishes selected open engineering deliverables produced with V
 | Generation | Design | Scope | Engineering status | Product report |
 |---|---|---|---|---|
 | 1 | [BILLET-T1](billet-t1/) | 256-point fixed-point complex FFT with explicit numeric and buffer rules | Engineering accepted | [PDF](billet-t1/REPORT.pdf) |
-| 2 | [BILLET-T2](billet-t2/) | Configurable FFT/IFFT lengths and scaling | Not accepted (verifier) | Pending |
+| 2 | [BILLET-T2](billet-t2/) | Configurable FFT/IFFT lengths and scaling | Not accepted (checks) | Pending |
 | 3 | [BILLET-T3](billet-t3/) | Multichannel windowing, overlap processing and power spectra | Not accepted (planned) | Pending |
 
 Accepted sources are published separately from in-progress status. Each generation keeps its own specification, RTL, executable verification and report. Planned generations are not completed products.
