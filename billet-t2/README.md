@@ -2,7 +2,7 @@
 
 Configurable FFT/IFFT lengths and scaling.
 
-**Status:** Not accepted (checks).
+**Status:** Not accepted (verifier).
 
 The independently reviewed product report has not been published yet.
 
