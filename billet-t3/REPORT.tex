@@ -1,0 +1,405 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=22mm,headheight=14pt]{geometry}
+
+\usepackage{longtable,booktabs,array,hyperref,xcolor,tikz,fancyhdr}
+
+\usepackage{fontspec,xeCJK}
+
+\setmainfont[Ligatures=TeXOff]{Times New Roman}
+
+\setsansfont[Ligatures=TeXOff]{Times New Roman}
+
+\setmonofont[Ligatures=TeXOff,WordSpace={1,1,1}]{Times New Roman}
+
+\setCJKmainfont{Noto Serif CJK SC}
+
+\setCJKsansfont{Noto Serif CJK SC}
+
+\setCJKmonofont{Noto Serif CJK SC}
+
+\newfontfamily\vulcanmathsymbols{Noto Serif CJK SC}
+
+\XeTeXgenerateactualtext=1
+
+\definecolor{vulcan}{HTML}{BB3E23}
+
+\pgfdeclarelayer{connections}\pgfdeclarelayer{edge labels}\pgfsetlayers{connections,main,edge labels}
+
+\hypersetup{hidelinks}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\setlength{\emergencystretch}{5em}\tolerance=2000\hbadness=10000
+
+\setlength{\parindent}{0pt}\setlength{\parskip}{5pt}
+
+\pagestyle{fancy}\fancyhf{}\fancyhead[L]{\small\sffamily VULCAN}
+
+\fancyhead[R]{\small Product design and verification}\fancyfoot[C]{\thepage}
+
+\begin{document}
+
+{\sffamily\huge\raggedright\textbf{BILLET-T3 Multi-Channel Spectral Processing Engine}\par}
+
+{\large Technical Design and Verification Report}\par
+
+16 October 2026 (\allowbreak{}UTC+\allowbreak{}8)\allowbreak{}\par\textcolor{vulcan}{\rule{\textwidth}{0.5pt}}
+
+\begin{abstract}
+
+BILLET-T3 is a synthesizable SystemVerilog spectral-processing IP block for four independently configured complex-sample channels. A shared serial engine supports 16-,\allowbreak{} 32-,\allowbreak{} 64-,\allowbreak{} 128- and 256-point FFT/\allowbreak{}IFFT,\allowbreak{} programmable stage scaling and block floating point,\allowbreak{} with rectangular,\allowbreak{} Hann or Hamming windowing and non-overlapping or 50\%-overlapping frame assembly.
+
+
+Independent verification passed 217 complete transform frames comprising 23,\allowbreak{}040 bins,\allowbreak{} plus 44 standalone channel-buffer frames comprising 2,\allowbreak{}624 sample transfers. Additional checks covered reset-aborted output,\allowbreak{} arithmetic units,\allowbreak{} legacy compatibility and checker fault sensitivity. Generic synthesis confirmed the required reachable hierarchy and absence of inferred latches. These results establish bounded RTL functionality and synthesizability,\allowbreak{} not physical implementation performance. [\allowbreak{}E021,\allowbreak{} E022,\allowbreak{} E023]\allowbreak{}
+
+
+\end{abstract}
+
+\section{Architecture and design rationale}
+
+Four raw-sample rings decouple interleaved channel acquisition from one radix-2 decimation-in-time transform engine. Keeping raw history permits each overlapping frame to apply its own chronological window coefficients. One reservation per channel prevents overwrite until transfer into the core completes. This conservative ownership scheme avoids copying retained samples and permits other eligible channels to accept input while one channel is blocked. Shared arithmetic reduces replication but limits aggregate throughput; four contexts do not imply four simultaneous transforms. Primary sample storage totals 6,\allowbreak{}272 logical bytes: 4,\allowbreak{}096 bytes of rings,\allowbreak{} 1,\allowbreak{}024 bytes of normalized transform storage and 1,\allowbreak{}152 bytes of raw butterfly storage,\allowbreak{} excluding coefficients and control. These capacities are architectural,\allowbreak{} not technology area measurements. [\allowbreak{}E001,\allowbreak{} E006,\allowbreak{} E007]\allowbreak{}
+
+\begin{center}\begin{tikzpicture}[every node/.style={font=\small\sffamily},>=latex]
+
+\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b0) at (0.0,0.0) {B1: Channel rings};
+
+\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b1) at (5.4,0.0) {B2: Window};
+
+\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b2) at (10.8,0.0) {B3: FFT/\allowbreak{}IFFT core};
+
+\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b3) at (0.0,-4.6) {B4: Frame arbitration};
+
+\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b4) at (5.4,-4.6) {B5: Channel tracking};
+
+\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b5) at (10.8,-4.6) {B6: Power and output};
+
+\begin{pgfonlayer}{connections}
+
+\draw[->,black!65] ([yshift=-0.160cm]b0.east) -- coordinate[pos=0.25] (e0) ([yshift=0.000cm]b1.west);
+
+\draw[->,black!65] ([yshift=0.000cm]b1.east) -- coordinate[pos=0.25] (e1) ([yshift=0.000cm]b2.west);
+
+\draw[->,black!65] ([xshift=-0.267cm]b2.south) -- coordinate[pos=0.25] (e2) ([xshift=0.267cm]b5.north);
+
+\draw[->,black!65,rounded corners=2pt] ([yshift=0.000cm]b0.east) -- (2.620,0.000) -- (2.620,-2.560) -- coordinate[midway] (e3) (-0.400,-2.560) -- ([xshift=-0.400cm]b3.north);
+
+\draw[->,black!65,rounded corners=2pt] ([yshift=0.000cm]b3.east) -- (2.700,-4.600) -- (2.700,-2.300) -- coordinate[midway] (e4) (0.000,-2.300) -- ([xshift=0.000cm]b0.south);
+
+\draw[->,black!65,rounded corners=2pt] ([yshift=-0.107cm]b2.east) -- (13.580,-0.107) -- (13.580,-2.040) -- coordinate[midway] (e5) (0.400,-2.040) -- ([xshift=0.400cm]b0.south);
+
+\draw[->,black!65,rounded corners=2pt] ([yshift=0.160cm]b0.east) -- (2.860,0.160) -- (2.860,-1.780) -- coordinate[midway] (e6) (5.133,-1.780) -- ([xshift=-0.267cm]b4.north);
+
+\draw[->,black!65,rounded corners=2pt] ([yshift=0.107cm]b2.east) -- (13.740,0.107) -- (13.740,-1.520) -- coordinate[midway] (e7) (5.667,-1.520) -- ([xshift=0.267cm]b4.north);
+
+\draw[->,black!65] ([yshift=0.000cm]b4.east) -- coordinate[pos=0.25] (e8) ([yshift=0.000cm]b5.west);
+
+\end{pgfonlayer}
+
+\begin{pgfonlayer}{edge labels}
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e0) {E1};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e1) {E2};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e2) {E3};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e3) {E4};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e4) {E5};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e5) {E6};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e6) {E7};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e7) {E8};
+
+\node[fill=white,inner sep=1pt,font=\scriptsize] at (e8) {E9};
+
+\end{pgfonlayer}
+
+\end{tikzpicture}\end{center}
+
+{\small Functional block map, not a gate-level netlist. Edge identifiers match the directed relationships below. Crossings do not denote junctions; separate attachment points preserve arrow directions.}
+
+{\small\begin{longtable}{@{}L{0.24\textwidth}L{0.7\textwidth}@{}}\toprule
+
+\textbf{Block} & \textbf{Responsi\allowbreak{}bility}\\\midrule\endhead
+
+B1: Channel rings & Instance channel\_\allowbreak{}buf captures per-channel configur\allowbreak{}ation,\allowbreak{} stores four 256-word raw complex rings,\allowbreak{} counts accepted samples and protects complete-frame reservat\allowbreak{}ions.\\[3pt]
+
+B2: Window & Instance window applies combinat\allowbreak{}ional rectangu\allowbreak{}lar bypass or symmetri\allowbreak{}c Q1.15 Hann/\allowbreak{}Hamming multipli\allowbreak{}cation at the chronolo\allowbreak{}gical frame index.\\[3pt]
+
+B3: FFT/\allowbreak{}IFFT core & Instance fft\_\allowbreak{}core performs bit-reversed loading,\allowbreak{} serial butterfl\allowbreak{}ies,\allowbreak{} whole-stage normaliz\allowbreak{}ation and natural-order output. Literal children are bitrev,\allowbreak{} twiddle\_\allowbreak{}rom,\allowbreak{} butterfl\allowbreak{}y and bfp\_\allowbreak{}scaler.\\[3pt]
+
+B4: Frame arbitrat\allowbreak{}ion & Logic inside channel\_\allowbreak{}buf selects pending frames round-robin,\allowbreak{} retains selectio\allowbreak{}n through stalls and advances priority after the final frame-transfer handshak\allowbreak{}e.\\[3pt]
+
+B5: Channel tracking & Top-level register\allowbreak{}s capture the selected channel on its first core input transfer and retain separate active-output and completi\allowbreak{}on tags.\\[3pt]
+
+B6: Power and output & Instance power\_\allowbreak{}spectrum computes exact componen\allowbreak{}t-square sums. Complex bins,\allowbreak{} power,\allowbreak{} exponent and channel tag share the core's output handshak\allowbreak{}e without an addition\allowbreak{}al pipeline stage.\\[3pt]
+
+\bottomrule\end{longtable}}
+
+{\small\begin{longtable}{@{}L{0.24\textwidth}L{0.7\textwidth}@{}}\toprule
+
+\textbf{Directed relation\allowbreak{}ship} & \textbf{Meaning}\\\midrule\endhead
+
+E1: B1 to B2 & Chronolo\allowbreak{}gical raw samples,\allowbreak{} index and captured configur\allowbreak{}ation\\[3pt]
+
+E2: B2 to B3 & Windowed complex samples; no register\allowbreak{}ed latency\\[3pt]
+
+E3: B3 to B6 & Post-normaliz\allowbreak{}ation complex bins and block exponent\\[3pt]
+
+E4: B1 to B4 & Pending reservat\allowbreak{}ions and frame metadata\\[3pt]
+
+E5: B4 to B1 & Selected read context and reservat\allowbreak{}ion release\\[3pt]
+
+E6: B3 to B1 & Core input readines\allowbreak{}s controls frame transfer\\[3pt]
+
+E7: B1 to B5 & Channel tag on first accepted frame beat\\[3pt]
+
+E8: B3 to B5 & Final-output handshak\allowbreak{}e captures completi\allowbreak{}on identity\\[3pt]
+
+E9: B5 to B6 & Output and completi\allowbreak{}on channel tags\\[3pt]
+
+\bottomrule\end{longtable}}
+
+\section{Interfaces and configuration}
+
+{\small\begin{longtable}{@{}L{0.2\textwidth}L{0.12\textwidth}L{0.1\textwidth}L{0.48\textwidth}@{}}\toprule
+
+\textbf{Signal /\allowbreak{} group} & \textbf{Directio\allowbreak{}n} & \textbf{Width} & \textbf{Contract}\\\midrule\endhead
+
+clk,\allowbreak{} rst\_\allowbreak{}n & Input & 1 bit each & Rising-edge clock and asynchro\allowbreak{}nous active-low reset. Reset forces every public output to zero without requirin\allowbreak{}g a rising edge.\\[3pt]
+
+in\_\allowbreak{}valid,\allowbreak{} in\_\allowbreak{}last,\allowbreak{} in\_\allowbreak{}re,\allowbreak{} in\_\allowbreak{}im,\allowbreak{} ch\_\allowbreak{}id & Input & 1,\allowbreak{} 1,\allowbreak{} signed 16,\allowbreak{} signed 16,\allowbreak{} 2 bits & Offered complex sample and channel 0 through 3. Only in\_\allowbreak{}valid \&\& in\_\allowbreak{}ready consumes a sample. in\_\allowbreak{}last is informat\allowbreak{}ional and does not delimit frames.\\[3pt]
+
+cfg\_\allowbreak{}log2\_\allowbreak{}n,\allowbreak{} cfg\_\allowbreak{}ifft & Input & 4,\allowbreak{} 1 bits & Transfor\allowbreak{}m length exponent 4 through 8; directio\allowbreak{}n 0 selects FFT and 1 selects IFFT.\\[3pt]
+
+cfg\_\allowbreak{}scale\_\allowbreak{}mode,\allowbreak{} cfg\_\allowbreak{}stage\_\allowbreak{}shift\_\allowbreak{}mask & Input & 2,\allowbreak{} 8 bits & Scaling mode 0 shifts every stage,\allowbreak{} 1 uses mask bit s for stage s,\allowbreak{} and 2 selects BFP. Mode 3 is invalid.\\[3pt]
+
+cfg\_\allowbreak{}overlap\_\allowbreak{}mode,\allowbreak{} cfg\_\allowbreak{}window\_\allowbreak{}mode & Input & 1,\allowbreak{} 2 bits & Overlap 0 selects hop N; 1 selects hop N/\allowbreak{}2. Window 0 is rectangu\allowbreak{}lar,\allowbreak{} 1 Hann and 2 Hamming; window 3 is invalid.\\[3pt]
+
+in\_\allowbreak{}ready,\allowbreak{} cfg\_\allowbreak{}error & Output & 1 bit each & Readines\allowbreak{}s applies to the offered channel. Invalid configur\allowbreak{}ation when capture is required asserts nonstick\allowbreak{}y cfg\_\allowbreak{}error independ\allowbreak{}ently of in\_\allowbreak{}valid and prevents acceptan\allowbreak{}ce.\\[3pt]
+
+out\_\allowbreak{}ready & Input & 1 bit & Sink acceptan\allowbreak{}ce control. A bin transfer\allowbreak{}s only when out\_\allowbreak{}valid \&\& out\_\allowbreak{}ready.\\[3pt]
+
+out\_\allowbreak{}valid,\allowbreak{} out\_\allowbreak{}last,\allowbreak{} out\_\allowbreak{}re,\allowbreak{} out\_\allowbreak{}im,\allowbreak{} out\_\allowbreak{}power & Output & 1,\allowbreak{} 1,\allowbreak{} signed 16,\allowbreak{} signed 16,\allowbreak{} unsigned 32 bits & Valid complex bin and exact power; out\_\allowbreak{}last marks bin N-1. The complete payload remains stable during a stall.\\[3pt]
+
+out\_\allowbreak{}bin\_\allowbreak{}idx,\allowbreak{} out\_\allowbreak{}block\_\allowbreak{}exp,\allowbreak{} out\_\allowbreak{}ch\_\allowbreak{}id & Output & 8,\allowbreak{} 4,\allowbreak{} 2 bits & Natural-order bin index,\allowbreak{} frame-wide stage-shift count and channel identity. Exponent ranges from zero through log2(\allowbreak{}N)\allowbreak{}.\\[3pt]
+
+frame\_\allowbreak{}done,\allowbreak{} frame\_\allowbreak{}done\_\allowbreak{}ch\_\allowbreak{}id & Output & 1,\allowbreak{} 2 bits & One-cycle completi\allowbreak{}on pulse immediat\allowbreak{}ely after the final output handshak\allowbreak{}e,\allowbreak{} with complete\allowbreak{}d channel identity. Completi\allowbreak{}on identity is zero otherwis\allowbreak{}e.\\[3pt]
+
+overflow\_\allowbreak{}flag,\allowbreak{} saturati\allowbreak{}on\_\allowbreak{}count & Output & 1,\allowbreak{} unsigned 32 bits & Sticky componen\allowbreak{}t-saturati\allowbreak{}on flag and cumulati\allowbreak{}ve saturati\allowbreak{}ng count across frames and channels. Both clear on reset.\\[3pt]
+
+\bottomrule\end{longtable}}
+
+{\small\begin{longtable}{@{}L{0.23\textwidth}L{0.12\textwidth}L{0.57\textwidth}@{}}\toprule
+
+\textbf{Paramete\allowbreak{}r} & \textbf{Default} & \textbf{Meaning /\allowbreak{} supporte\allowbreak{}d values}\\\midrule\endhead
+
+Structur\allowbreak{}al configur\allowbreak{}ation & Fixed; no public structur\allowbreak{}al paramete\allowbreak{}rs & Exactly four contexts,\allowbreak{} maximum N=\allowbreak{}256 and one serial transfor\allowbreak{}m core. There are no DEPTH or MAX\_\allowbreak{}WORDS paramete\allowbreak{}rs.\\[3pt]
+
+Per-channel runtime configur\allowbreak{}ation & No default active epoch & Every channel captures all configur\allowbreak{}ation fields on its first accepted sample. Supporte\allowbreak{}d lengths are exclusiv\allowbreak{}ely N=\allowbreak{}16,\allowbreak{}32,\allowbreak{}64,\allowbreak{}128,\allowbreak{}256; legal directio\allowbreak{}n,\allowbreak{} scaling,\allowbreak{} overlap and window encoding\allowbreak{}s are defined above.\\[3pt]
+
+Epoch lifetime & Inactive after reset & Non-overlap epochs end on the Nth accepted sample and can be reconfig\allowbreak{}ured after reservat\allowbreak{}ion release. Overlap configur\allowbreak{}ation and retained history persist until reset.\\[3pt]
+
+\bottomrule\end{longtable}}
+
+\section{Behavior and corner cases}
+
+\subsection{Frame assembly and ownership}
+
+Non-overlap frame m contains samples m*\allowbreak{}N through m*\allowbreak{}N+\allowbreak{}N-1. Overlap frame m contains samples m*\allowbreak{}(\allowbreak{}N/\allowbreak{}2)\allowbreak{} through m*\allowbreak{}(\allowbreak{}N/\allowbreak{}2)\allowbreak{}+\allowbreak{}N-1. No frame exists before N accepted samples; subsequent overlap frames require exactly N/\allowbreak{}2 new samples. Rings wrap at the captured N,\allowbreak{} not their physical capacity. A pending or transferring frame blocks writes only to its own channel. Final transfer releases the reservation,\allowbreak{} retaining the newest N/\allowbreak{}2 raw samples for overlap or clearing fill for non-overlap. Same-edge reservation replacement is not supported. [\allowbreak{}E001,\allowbreak{} E006]\allowbreak{}
+
+\subsection{Configuration and scheduling}
+
+Live pins describe only the offered channel. Once captured,\allowbreak{} subsequent changes,\allowbreak{} including invalid encodings,\allowbreak{} cannot alter or block that epoch. A non-overlap channel awaiting release can report invalid next-epoch configuration while its previous frame remains pending. Registered round-robin selection starts at channel 0 and advances to the channel following each completed frame transfer. Frames never interleave internally or at output; selection order,\allowbreak{} rather than global arrival order,\allowbreak{} determines output order. Eventual sink readiness is required for starvation-free progress. [\allowbreak{}E002,\allowbreak{} E006]\allowbreak{}
+
+\subsection{Window arithmetic}
+
+For chronological index n,\allowbreak{} Hann uses w[\allowbreak{}n]\allowbreak{}=\allowbreak{}0.5-0.5*\allowbreak{}cos(\allowbreak{}2*\allowbreak{}pi*\allowbreak{}n/\allowbreak{}(\allowbreak{}N-1)\allowbreak{})\allowbreak{}; Hamming uses w[\allowbreak{}n]\allowbreak{}=\allowbreak{}0.54-0.46*\allowbreak{}cos(\allowbreak{}2*\allowbreak{}pi*\allowbreak{}n/\allowbreak{}(\allowbreak{}N-1)\allowbreak{})\allowbreak{}. Embedded coefficients are q[\allowbreak{}n]\allowbreak{}=\allowbreak{}min(\allowbreak{}32767,\allowbreak{}floor(\allowbreak{}32768*\allowbreak{}w[\allowbreak{}n]\allowbreak{}+\allowbreak{}0.5)\allowbreak{})\allowbreak{},\allowbreak{} with exact mirrored symmetry. Each signed component is multiplied at full 32-bit precision and arithmetic-shifted right 15,\allowbreak{} truncating toward negative infinity. Rectangular mode bypasses multiplication exactly. Windowing precedes bit reversal and is reapplied to reused raw samples. [\allowbreak{}E011]\allowbreak{}
+
+\subsection{Transform and normalization}
+
+The radix-2 DIT core preserves Gen-2 twiddle values,\allowbreak{} including positive unity 32767 and negative unity -32768. Signed 17-bit twiddle outputs preserve +\allowbreak{}32768 when IFFT negates the forward imaginary coefficient. Complex products use signed 33-bit products and 34-bit sums/\allowbreak{}differences before shifting right 15; raw butterfly results are signed 18-bit. After observing a complete stage,\allowbreak{} normalization applies its single selected arithmetic shift and clamps each component to [\allowbreak{}-32768,\allowbreak{}32767]\allowbreak{}. BFP shifts once if any raw component exceeds that range; extreme results can still saturate. IFFT adds no implicit normalization. [\allowbreak{}E003,\allowbreak{} E005,\allowbreak{} E007,\allowbreak{} E010]\allowbreak{}
+
+\subsection{Power and numerical status}
+
+Power is exactly Re(\allowbreak{}X)\allowbreak{}\textasciicircum{}2+\allowbreak{}Im(\allowbreak{}X)\allowbreak{}\textasciicircum{}2 for the delivered,\allowbreak{} scaled and saturated components,\allowbreak{} with maximum 0x80000000 at (\allowbreak{}-32768,\allowbreak{}-32768)\allowbreak{}. No exponent compensation is applied; unsaturated reconstructed-scale power additionally carries 2\textasciicircum{}(\allowbreak{}2*\allowbreak{}out\_\allowbreak{}block\_\allowbreak{}exp)\allowbreak{}. Each clamped real or imaginary component increments saturation\_\allowbreak{}count,\allowbreak{} which saturates at 0xffffffff; windowing and power do not contribute. [\allowbreak{}E007,\allowbreak{} E008]\allowbreak{}
+
+\subsection{Pre-edge and post-edge timing}
+
+Handshakes use pre-rising-edge values. A sample completing a frame at edge E creates its reservation only after E; registered selection first exposes it after E+\allowbreak{}1 or later. At final core-input handshake F,\allowbreak{} the core enters BUTTERFLY\_\allowbreak{}READ. Two cycles per butterfly and two per normalization sample produce first out\_\allowbreak{}valid immediately after F+\allowbreak{}3*\allowbreak{}N*\allowbreak{}log2(\allowbreak{}N)\allowbreak{}+\allowbreak{}1: 193 cycles for N=\allowbreak{}16 and 6,\allowbreak{}145 for N=\allowbreak{}256. After a nonfinal output transfer at O,\allowbreak{} the next bin becomes valid after O+\allowbreak{}1 and first transfers at O+\allowbreak{}2. Final transfer at L asserts frame\_\allowbreak{}done after L; it clears after L+\allowbreak{}1. No new core-input beat transfers on L. Arbitration can add interframe gaps. [\allowbreak{}E002,\allowbreak{} E007]\allowbreak{}
+
+\subsection{Reset and inactive outputs}
+
+Asynchronous reset aborts partial,\allowbreak{} pending,\allowbreak{} computing and stalled-output frames,\allowbreak{} clears history validity,\allowbreak{} configuration epochs,\allowbreak{} arbitration,\allowbreak{} tags and cumulative status,\allowbreak{} and prevents pre-reset results from reappearing. Sample memories need not reset because validity and counts prevent uninitialized reads. Outside reset,\allowbreak{} inactive output data,\allowbreak{} power,\allowbreak{} index,\allowbreak{} exponent,\allowbreak{} channel and last are zero; cumulative status remains visible. [\allowbreak{}E006,\allowbreak{} E007,\allowbreak{} E009]\allowbreak{}
+
+\section{Verification methods and measured results}
+
+\subsection{Exact transform arithmetic across supported configurations}
+
+\textbf{Method.} Independent integer oracle with mathematical coefficient generation and a recursive transform organization; numerical-matrix seed 1701 exercised five lengths,\allowbreak{} two directions,\allowbreak{} three scaling modes and three windows.
+
+\textbf{Result.} All 90 frames and 8,\allowbreak{}928 bins passed exact comparison. The run included 18 saturating frames and BFP cases both with and without shifts. Detailed frame denominators and outcomes are retained in the behavior results ledger.
+
+{\small Evidence: E013,\allowbreak{} E015,\allowbreak{} E016,\allowbreak{} E021}
+
+\subsection{Independent numerical plausibility and legacy continuity}
+
+\textbf{Method.} Thirty low-amplitude integer-oracle versus floating-point DFT cases using seed 109; direct Gen-2/\allowbreak{}T3-core trace comparison using seed 8917.
+
+\textbf{Result.} All DFT cases passed the log2(\allowbreak{}N)\allowbreak{}+\allowbreak{}2 LSB component-error limit; the largest observed error was 4.87109375 LSB. Legacy comparison passed 50 frames,\allowbreak{} 4,\allowbreak{}960 bins and 121,\allowbreak{}643 public-interface cycles with byte-identical traces.
+
+{\small Evidence: E013,\allowbreak{} E016,\allowbreak{} E021}
+
+\subsection{Overlap chronology,\allowbreak{} channel isolation and fair reservation handling}
+
+\textbf{Method.} Accepted-sample history scoreboards; overlap-repeated-wrap seed 291 and standalone channel-buffer-contract seed 51.
+
+\textbf{Result.} Overlap passed 64 transform frames and 8,\allowbreak{}704 bins,\allowbreak{} including 32 repeated-wrap comparison events. Buffer verification passed 44 frames and 2,\allowbreak{}624 transfers,\allowbreak{} with 1,\allowbreak{}805 stalled frame cycles,\allowbreak{} 44 round-robin selections and 15 simultaneous input/\allowbreak{}frame-transfer events.
+
+{\small Evidence: E006,\allowbreak{} E015,\allowbreak{} E016,\allowbreak{} E021}
+
+\subsection{Reset,\allowbreak{} invalid configuration,\allowbreak{} stalls and completion timing}
+
+\textbf{Method.} Cycle-level boundary scenario,\allowbreak{} seed 73,\allowbreak{} with active X/\allowbreak{}Z rejection and pre/\allowbreak{}post-edge comparisons.
+
+\textbf{Result.} Passed 13 complete frames and 448 bins,\allowbreak{} plus 15 accepted bins from a reset-aborted frame. Recorded 52 invalid idle and 52 invalid valid observations,\allowbreak{} five asynchronous resets without a clock,\allowbreak{} and first/\allowbreak{}middle/\allowbreak{}final-bin stalls. Across transform scenarios,\allowbreak{} 217 completion pulses followed final handshakes.
+
+{\small Evidence: E012,\allowbreak{} E016,\allowbreak{} E021}
+
+\subsection{Arithmetic-unit boundaries}
+
+\textbf{Method.} Independent directed and seeded unit vectors against delivered combinational units and scaler sequencing.
+
+\textbf{Result.} Passed 5,\allowbreak{}952 window,\allowbreak{} 496 bit-reversal,\allowbreak{} 256 twiddle,\allowbreak{} 4,\allowbreak{}177 power and 4,\allowbreak{}096 butterfly vectors,\allowbreak{} plus scaler reset,\allowbreak{} observation,\allowbreak{} normalization and commit checks.
+
+{\small Evidence: E013,\allowbreak{} E016,\allowbreak{} E021}
+
+\subsection{Reachable synthesizable hardware and exact public interface}
+
+\textbf{Method.} Yosys 0.33 generic technology-independent synthesis without ABC,\allowbreak{} hierarchy and multiplier inspection,\allowbreak{} memory inventory,\allowbreak{} port checks and no-latch assertions.
+
+\textbf{Result.} Passed all 28 public ports and required literal instance relationships. Pre-mapping sample memories contained 32,\allowbreak{}768 ring bits,\allowbreak{} 8,\allowbreak{}192 normalized-core bits and 9,\allowbreak{}216 raw-core bits. Eight multipliers were reachable; no inferred latches were detected.
+
+{\small Evidence: E016,\allowbreak{} E022}
+
+\subsection{Source-based delivery and checker sensitivity}
+
+\textbf{Method.} Compile retained source copies for a channel-3,\allowbreak{} N=\allowbreak{}16 impulse test; separately inject stuck-zero power into a disposable private copy,\allowbreak{} then rerun unchanged sources.
+
+\textbf{Result.} Source-only reproduction passed one frame and 16 bins over 264 cycles. The unchanged rerun produced an identical trace. The private defect was rejected at bin 0 because zero power differed from expected 1,\allowbreak{}310,\allowbreak{}720,\allowbreak{} despite simulator exit success. Production sources were not modified.
+
+{\small Evidence: E014,\allowbreak{} E016,\allowbreak{} E023}
+
+\section{Integration and use}
+
+Instantiate billet\_\allowbreak{}t3\_\allowbreak{}top from rtl/\allowbreak{}billet\_\allowbreak{}t3\_\allowbreak{}top.sv and compile all nine rtl/\allowbreak{}*\allowbreak{}.sv modules. Read design/\allowbreak{}SPEC.md for the normative port and cycle contract and design/\allowbreak{}ARCHITECTURE.md for storage ownership and the claim-to-check index. Mounted Gen-2 RTL is a verification reference,\allowbreak{} not a hardware build dependency.
+
+
+Assert rst\_\allowbreak{}n low,\allowbreak{} then release with stable clocking. Supply explicit legal configuration on each channel's first accepted sample. Hold offered data until in\_\allowbreak{}valid \&\& in\_\allowbreak{}ready; use accepted counts rather than in\_\allowbreak{}last for framing. Reset before changing an overlapping stream's configuration.
+
+
+Consume only out\_\allowbreak{}valid \&\& out\_\allowbreak{}ready bins. Preserve channel,\allowbreak{} index and exponent with each bin; size downstream power storage as unsigned 32-bit. Allow input backpressure and recognize that indefinite output stalls eventually stop acquisition across all contexts.
+
+
+Recorded verification tools were Python 3.12.3,\allowbreak{} Icarus Verilog 12.0 and Yosys 0.33. Python standard-library code is sufficient; iverilog,\allowbreak{} vvp and Yosys remain external prerequisites.
+
+
+Reproduction entry points are \texttt{python3 tests/\allowbreak{}verify.py --check behavior --output evidence/\allowbreak{}behavior},\allowbreak{} \texttt{python3 tests/\allowbreak{}verify.py --check synthesis --output evidence/\allowbreak{}synthesis},\allowbreak{} and \texttt{python3 tests/\allowbreak{}verify.py --check delivery --output evidence/\allowbreak{}delivery}. These commands were executed successfully for the reported evidence.
+
+
+Keep RTL,\allowbreak{} documentation,\allowbreak{} tests/\allowbreak{}*\allowbreak{}.py and reference inputs separate from generated bridges,\allowbreak{} binaries,\allowbreak{} traces and netlists under evidence/\allowbreak{}. Each retained run includes results and source-bound receipts. The executed delivery check demonstrates a bounded source-copy smoke,\allowbreak{} not a full clean-directory reproduction of every check on another machine.
+
+
+\section{Limitations and acceptance boundary}
+
+Overlap support assembles sliding analysis frames for overlap-save/\allowbreak{}overlap-add processing; it does not implement filtering,\allowbreak{} output overlap accumulation or synthesis-side reconstruction.
+
+
+The single-clock IP includes no host bus,\allowbreak{} DMA,\allowbreak{} clock-domain crossing,\allowbreak{} independent output FIFO or guaranteed continuous-input rate. Aggregate service depends on transform length,\allowbreak{} arbitration and downstream readiness.
+
+
+Verification is bounded directed and seeded testing,\allowbreak{} not exhaustive coverage or formal proof. Simulation did not exercise 2\textasciicircum{}32 component saturations or establish the counter's terminal behavior by rollover testing.
+
+
+Generic synthesis establishes implementable logic structure,\allowbreak{} not SRAM mapping suitability,\allowbreak{} technology area,\allowbreak{} clock frequency,\allowbreak{} timing closure,\allowbreak{} physical power,\allowbreak{} process qualification,\allowbreak{} FPGA performance,\allowbreak{} board operation or physical sign-off.
+
+
+\appendix\section{Source inventory}
+
+Production inventory: 9 Verilog/\allowbreak{}SystemVerilog files; 961 nonblank,\allowbreak{} non-comment lines. Source size is not a correctness or quality metric.
+
+{\small\begin{longtable}{@{}L{0.61\textwidth}L{0.15\textwidth}L{0.15\textwidth}@{}}\toprule
+
+\textbf{Producti\allowbreak{}on file} & \textbf{Physical lines} & \textbf{Code lines}\\\midrule\endhead
+
+rtl/\allowbreak{}billet\_\allowbreak{}t3\_\allowbreak{}bfp\_\allowbreak{}scaler.sv & 62 & 57\\[3pt]
+
+rtl/\allowbreak{}billet\_\allowbreak{}t3\_\allowbreak{}bitrev.sv & 13 & 13\\[3pt]
+
+rtl/\allowbreak{}billet\_\allowbreak{}t3\_\allowbreak{}butterfl\allowbreak{}y.sv & 27 & 26\\[3pt]
+
+rtl/\allowbreak{}billet\_\allowbreak{}t3\_\allowbreak{}channel\_\allowbreak{}buf.sv & 155 & 149\\[3pt]
+
+rtl/\allowbreak{}billet\_\allowbreak{}t3\_\allowbreak{}fft\_\allowbreak{}core.sv & 221 & 216\\[3pt]
+
+rtl/\allowbreak{}billet\_\allowbreak{}t3\_\allowbreak{}power\_\allowbreak{}spectrum.sv & 8 & 8\\[3pt]
+
+rtl/\allowbreak{}billet\_\allowbreak{}t3\_\allowbreak{}top.sv & 82 & 76\\[3pt]
+
+rtl/\allowbreak{}billet\_\allowbreak{}t3\_\allowbreak{}twiddle\_\allowbreak{}rom.sv & 143 & 143\\[3pt]
+
+rtl/\allowbreak{}billet\_\allowbreak{}t3\_\allowbreak{}window.sv & 276 & 273\\[3pt]
+
+\bottomrule\end{longtable}}
+
+\section{Verification record index}
+
+{\small\begin{longtable}{@{}L{0.57\textwidth}L{0.16\textwidth}L{0.17\textwidth}@{}}\toprule
+
+\textbf{Recorded check} & \textbf{Outcome} & \textbf{Executio\allowbreak{}n time (\allowbreak{}s)\allowbreak{}}\\\midrule\endhead
+
+behavior & passed & 47.597\\[3pt]
+
+synthesi\allowbreak{}s & passed & 54.107\\[3pt]
+
+delivery & passed & 0.686\\[3pt]
+
+\bottomrule\end{longtable}}
+
+Execution times include tool and provider waiting; they are not hardware latency or model utilization.
+
+{\small\begin{longtable}{@{}L{0.12\textwidth}L{0.82\textwidth}@{}}\toprule
+
+\textbf{Referenc\allowbreak{}e} & \textbf{Original project-relative record}\\\midrule\endhead
+
+E006 & rtl/\allowbreak{}billet\_\allowbreak{}t3\_\allowbreak{}channel\_\allowbreak{}buf.sv\\[3pt]
+
+E012 & tests/\allowbreak{}bridge.py\\[3pt]
+
+E013 & tests/\allowbreak{}model.py\\[3pt]
+
+E014 & tests/\allowbreak{}retentio\allowbreak{}n.py\\[3pt]
+
+E015 & tests/\allowbreak{}scenario\allowbreak{}s.py\\[3pt]
+
+E016 & tests/\allowbreak{}verify.py\\[3pt]
+
+E021 & .vulcan/\allowbreak{}engineer\allowbreak{}ing/\allowbreak{}run-0001/\allowbreak{}attempt-0003/\allowbreak{}stdout.log\\[3pt]
+
+E022 & .vulcan/\allowbreak{}engineer\allowbreak{}ing/\allowbreak{}run-0001/\allowbreak{}attempt-0004/\allowbreak{}stdout.log\\[3pt]
+
+E023 & .vulcan/\allowbreak{}engineer\allowbreak{}ing/\allowbreak{}run-0001/\allowbreak{}attempt-0005/\allowbreak{}stdout.log\\[3pt]
+
+\bottomrule\end{longtable}}
+
+\section{Document provenance}
+
+Engineering was independently accepted for the recorded source and evidence identity. This is not exhaustive proof, hardware deployment or physical signoff. The companion REPORT.md records the exact report approval and source manifest, and links the English/Chinese journeys containing original failures and interventions. A report number identifies a generation attempt, not a new hardware revision.
+
+No developer attribution was supplied; none has been inferred.
+
+\end{document}
