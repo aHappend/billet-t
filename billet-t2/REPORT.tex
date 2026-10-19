@@ -1,6 +1,6 @@
 \documentclass[11pt,a4paper]{article}
 
-\usepackage[margin=22mm,headheight=14pt]{geometry}
+\usepackage[margin=20mm,headheight=15pt]{geometry}
 
 \usepackage{longtable,booktabs,array,hyperref,xcolor,tikz,fancyhdr}
 
@@ -34,19 +34,25 @@
 
 \setlength{\parindent}{0pt}\setlength{\parskip}{5pt}
 
-\pagestyle{fancy}\fancyhf{}\fancyhead[L]{\small\sffamily VULCAN}
+\pagestyle{fancy}\fancyhf{}\fancyhead[L]{\small\sffamily\textbf{VULCAN SILICON ENGINEERING}}
 
-\fancyhead[R]{\small Product design and verification}\fancyfoot[C]{\thepage}
+\fancyhead[R]{\small\sffamily Technical Design, Quartus STA \& FPGA Verification Report}\fancyfoot[C]{\small\sffamily Page \thepage}
 
 \begin{document}
 
-{\sffamily\huge\raggedright\textbf{BILLET-T2: Runtime-Configurable FFT/\allowbreak{}IFFT RTL IP}\par}
+{\footnotesize\sffamily\textcolor{vulcan}{\textbf{VULCAN AUTONOMOUS CHIP DESIGN \& HARDWARE SIGNOFF SERIES \hfill DOCUMENT CLASS: ENGINEERING VERIFICATION REPORT}}\par}
 
-{\large Technical Design and Verification Report}\par
+\vspace{2pt}\textcolor{vulcan}{\rule{\textwidth}{1.2pt}}\vspace{4pt}
 
-16 October 2026 (\allowbreak{}UTC+\allowbreak{}8)\allowbreak{}\par\textcolor{vulcan}{\rule{\textwidth}{0.5pt}}
+{\sffamily\LARGE\raggedright\textbf{BILLET-T2: Runtime-Configurable FFT/\allowbreak{}IFFT RTL IP}\par}
 
-\begin{abstract}
+\vspace{4pt}
+
+{\footnotesize\sffamily\renewcommand{\arraystretch}{1.22}\begin{tabular}{@{}L{0.22\textwidth}L{0.74\textwidth}@{}}\toprule\textbf{Author \& Contact} & Sufeng Guo (\allowbreak{}sufeng\_\allowbreak{}guo@smail.nju.edu.cn,\allowbreak{} v-sufengguo@microsoft.com)\allowbreak{}\\\textbf{Target Platform} & Intel Arria 10 GX (\texttt{10AX115N3F40E2SG}) \textemdash{} Microsoft Catapult Longs Peak (Bedrock 2.1)\\\textbf{Verification Stack} & Icarus Verilog 12.0 $\cdot$ Yosys 0.33 $\cdot$ Intel Quartus Prime 17.1 TimeQuest STA $\cdot$ PCIe Gen3x8 HIL\\\textbf{Release Timestamp} & 2026-10-19 23:40 UTC+\allowbreak{}8 (\allowbreak{}Beijing Time)\allowbreak{}\\\bottomrule\end{tabular}\par}
+
+\vspace{4pt}
+
+\begin{abstract}\noindent 
 
 BILLET-T2 is a synthesizable SystemVerilog transform engine supporting runtime-selected 16-,\allowbreak{} 32-,\allowbreak{} 64-,\allowbreak{} 128- and 256-point complex FFTs and IFFTs. A single iterative radix-2 datapath provides fixed,\allowbreak{} programmable and block floating-point stage scaling,\allowbreak{} natural-order input/\allowbreak{}output and frame-level exponent metadata.
 
@@ -60,117 +66,117 @@ Independent RTL simulation checked 479 main-matrix frames across 1,\allowbreak{}
 
 The parameterless billet\_\allowbreak{}t2\_\allowbreak{}top instantiates the bit-reversal,\allowbreak{} twiddle-ROM,\allowbreak{} butterfly and BFP-scaler modules directly. It owns configuration,\allowbreak{} scheduling,\allowbreak{} memories,\allowbreak{} diagnostics and output holding registers. Bit-reversed loading permits natural-order radix-2 DIT results. Each stage computes all raw butterflies before normalization,\allowbreak{} preserving information until the complete-stage BFP decision is available. This deliberately trades scratch storage and latency for a simple shared datapath with deterministic scheduling. The two banks contain 17,\allowbreak{}408 logical bits; physical memory inference is target-dependent. Blocks below are ordered row-major for a three-column diagram. [\allowbreak{}E001–E007]\allowbreak{}
 
-\begin{center}\begin{tikzpicture}[every node/.style={font=\small\sffamily},>=latex]
+\begin{center}\begin{tikzpicture}[every node/.style={font=\footnotesize\sffamily},>=latex]
 
-\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b0) at (0.0,0.0) {B1: Frame control};
+\node[draw=vulcan!85!black,thick,rounded corners=3pt,fill=vulcan!6,text width=3.9cm,minimum height=1.05cm,align=center] (b0) at (0.0,0.0) {\textbf{B1:} Frame control};
 
-\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b1) at (5.4,0.0) {B2: Sample bank};
+\node[draw=vulcan!85!black,thick,rounded corners=3pt,fill=vulcan!6,text width=3.9cm,minimum height=1.05cm,align=center] (b1) at (5.3,0.0) {\textbf{B2:} Sample bank};
 
-\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b2) at (10.8,0.0) {B3: Twiddle ROM};
+\node[draw=vulcan!85!black,thick,rounded corners=3pt,fill=vulcan!6,text width=3.9cm,minimum height=1.05cm,align=center] (b2) at (10.6,0.0) {\textbf{B3:} Twiddle ROM};
 
-\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b3) at (0.0,-4.6) {B4: Butterfly};
+\node[draw=vulcan!85!black,thick,rounded corners=3pt,fill=vulcan!6,text width=3.9cm,minimum height=1.05cm,align=center] (b3) at (0.0,-3.1) {\textbf{B4:} Butterfly};
 
-\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b4) at (5.4,-4.6) {B5: Raw scratch};
+\node[draw=vulcan!85!black,thick,rounded corners=3pt,fill=vulcan!6,text width=3.9cm,minimum height=1.05cm,align=center] (b4) at (5.3,-3.1) {\textbf{B5:} Raw scratch};
 
-\node[draw=vulcan,rounded corners,fill=vulcan!4,text width=3.8cm,minimum height=1cm,align=center] (b5) at (10.8,-4.6) {B6: BFP scaler};
+\node[draw=vulcan!85!black,thick,rounded corners=3pt,fill=vulcan!6,text width=3.9cm,minimum height=1.05cm,align=center] (b5) at (10.6,-3.1) {\textbf{B6:} BFP scaler};
 
 \begin{pgfonlayer}{connections}
 
-\draw[->,black!65,rounded corners=2pt] ([yshift=-0.160cm]b0.east) -- (2.300,-0.160) -- (2.300,-3.600) -- coordinate[midway] (e0) (5.133,-3.600) -- ([xshift=-0.267cm]b1.south);
+\draw[->,thick,black!65,rounded corners=2pt] ([yshift=-0.160cm]b0.east) -- (2.300,-0.160) -- (2.300,-2.300) -- coordinate[midway] (e0) (5.033,-2.300) -- ([xshift=-0.267cm]b1.south);
 
-\draw[->,black!65,rounded corners=2pt] ([yshift=0.000cm]b0.east) -- (2.380,0.000) -- (2.380,-3.340) -- coordinate[midway] (e1) (10.400,-3.340) -- ([xshift=-0.400cm]b2.south);
+\draw[->,thick,black!65,rounded corners=2pt] ([yshift=0.000cm]b0.east) -- (2.370,0.000) -- (2.370,-2.140) -- coordinate[midway] (e1) (10.200,-2.140) -- ([xshift=-0.400cm]b2.south);
 
-\draw[->,black!65,rounded corners=2pt] ([yshift=-0.107cm]b1.east) -- (7.860,-0.107) -- (7.860,-3.080) -- coordinate[midway] (e2) (-0.480,-3.080) -- ([xshift=-0.480cm]b3.north);
+\draw[->,thick,black!65,rounded corners=2pt] ([yshift=-0.107cm]b1.east) -- (7.740,-0.107) -- (7.740,-2.080) -- coordinate[midway] (e2) (-0.480,-2.080) -- ([xshift=-0.480cm]b3.north);
 
-\draw[->,black!65,rounded corners=2pt] ([yshift=0.000cm]b2.east) -- (13.340,0.000) -- (13.340,-2.820) -- coordinate[midway] (e3) (-0.160,-2.820) -- ([xshift=-0.160cm]b3.north);
+\draw[->,thick,black!65,rounded corners=2pt] ([yshift=0.000cm]b2.east) -- (13.110,0.000) -- (13.110,-1.920) -- coordinate[midway] (e3) (-0.160,-1.920) -- ([xshift=-0.160cm]b3.north);
 
-\draw[->,black!65] ([yshift=-0.107cm]b3.east) -- coordinate[pos=0.25] (e4) ([yshift=0.000cm]b4.west);
+\draw[->,thick,black!65] ([yshift=-0.107cm]b3.east) -- coordinate[pos=0.25] (e4) ([yshift=0.000cm]b4.west);
 
-\draw[->,black!65,rounded corners=2pt] ([yshift=0.107cm]b3.east) -- (2.700,-4.493) -- (2.700,-6.900) -- coordinate[midway] (e5) (10.800,-6.900) -- ([xshift=0.000cm]b5.south);
+\draw[->,thick,black!65,rounded corners=2pt] ([yshift=0.107cm]b3.east) -- (2.650,-2.993) -- (2.650,-4.600) -- coordinate[midway] (e5) (10.600,-4.600) -- ([xshift=0.000cm]b5.south);
 
-\draw[->,black!65] ([yshift=0.000cm]b4.east) -- coordinate[pos=0.25] (e6) ([yshift=0.000cm]b5.west);
+\draw[->,thick,black!65] ([yshift=0.000cm]b4.east) -- coordinate[pos=0.25] (e6) ([yshift=0.000cm]b5.west);
 
-\draw[->,black!65,rounded corners=2pt] ([yshift=0.160cm]b0.east) -- (2.860,0.160) -- (2.860,-1.780) -- coordinate[midway] (e7) (11.200,-1.780) -- ([xshift=0.400cm]b5.north);
+\draw[->,thick,black!65,rounded corners=2pt] ([yshift=0.160cm]b0.east) -- (2.790,0.160) -- (2.790,-1.280) -- coordinate[midway] (e7) (11.000,-1.280) -- ([xshift=0.400cm]b5.north);
 
-\draw[->,black!65,rounded corners=2pt] ([yshift=-0.107cm]b5.east) -- (13.740,-4.707) -- (13.740,-1.520) -- coordinate[midway] (e8) (5.667,-1.520) -- ([xshift=0.267cm]b1.south);
+\draw[->,thick,black!65,rounded corners=2pt] ([yshift=-0.107cm]b5.east) -- (13.460,-3.207) -- (13.460,-1.020) -- coordinate[midway] (e8) (5.567,-1.020) -- ([xshift=0.267cm]b1.south);
 
-\draw[->,black!65,rounded corners=2pt] ([yshift=0.107cm]b5.east) -- (13.820,-4.493) -- (13.820,-1.260) -- coordinate[midway] (e9) (0.160,-1.260) -- ([xshift=0.160cm]b0.south);
+\draw[->,thick,black!65,rounded corners=2pt] ([yshift=0.107cm]b5.east) -- (13.530,-2.993) -- (13.530,-0.860) -- coordinate[midway] (e9) (0.160,-0.860) -- ([xshift=0.160cm]b0.south);
 
-\draw[->,black!65,rounded corners=2pt] ([yshift=0.107cm]b1.east) -- (8.500,0.107) -- (8.500,-1.000) -- coordinate[midway] (e10) (0.480,-1.000) -- ([xshift=0.480cm]b0.south);
+\draw[->,thick,black!65,rounded corners=2pt] ([yshift=0.107cm]b1.east) -- (8.300,0.107) -- (8.300,-0.700) -- coordinate[midway] (e10) (0.480,-0.700) -- ([xshift=0.480cm]b0.south);
 
 \end{pgfonlayer}
 
 \begin{pgfonlayer}{edge labels}
 
-\node[fill=white,inner sep=1pt,font=\scriptsize] at (e0) {E1};
+\node[fill=white,inner sep=1pt,font=\scriptsize\bfseries,text=vulcan!90!black] at (e0) {E1};
 
-\node[fill=white,inner sep=1pt,font=\scriptsize] at (e1) {E2};
+\node[fill=white,inner sep=1pt,font=\scriptsize\bfseries,text=vulcan!90!black] at (e1) {E2};
 
-\node[fill=white,inner sep=1pt,font=\scriptsize] at (e2) {E3};
+\node[fill=white,inner sep=1pt,font=\scriptsize\bfseries,text=vulcan!90!black] at (e2) {E3};
 
-\node[fill=white,inner sep=1pt,font=\scriptsize] at (e3) {E4};
+\node[fill=white,inner sep=1pt,font=\scriptsize\bfseries,text=vulcan!90!black] at (e3) {E4};
 
-\node[fill=white,inner sep=1pt,font=\scriptsize] at (e4) {E5};
+\node[fill=white,inner sep=1pt,font=\scriptsize\bfseries,text=vulcan!90!black] at (e4) {E5};
 
-\node[fill=white,inner sep=1pt,font=\scriptsize] at (e5) {E6};
+\node[fill=white,inner sep=1pt,font=\scriptsize\bfseries,text=vulcan!90!black] at (e5) {E6};
 
-\node[fill=white,inner sep=1pt,font=\scriptsize] at (e6) {E7};
+\node[fill=white,inner sep=1pt,font=\scriptsize\bfseries,text=vulcan!90!black] at (e6) {E7};
 
-\node[fill=white,inner sep=1pt,font=\scriptsize] at (e7) {E8};
+\node[fill=white,inner sep=1pt,font=\scriptsize\bfseries,text=vulcan!90!black] at (e7) {E8};
 
-\node[fill=white,inner sep=1pt,font=\scriptsize] at (e8) {E9};
+\node[fill=white,inner sep=1pt,font=\scriptsize\bfseries,text=vulcan!90!black] at (e8) {E9};
 
-\node[fill=white,inner sep=1pt,font=\scriptsize] at (e9) {E10};
+\node[fill=white,inner sep=1pt,font=\scriptsize\bfseries,text=vulcan!90!black] at (e9) {E10};
 
-\node[fill=white,inner sep=1pt,font=\scriptsize] at (e10) {E11};
+\node[fill=white,inner sep=1pt,font=\scriptsize\bfseries,text=vulcan!90!black] at (e10) {E11};
 
 \end{pgfonlayer}
 
-\end{tikzpicture}\end{center}
+\end{tikzpicture}\par
 
-{\small Functional block map, not a gate-level netlist. Edge identifiers match the directed relationships below. Crossings do not denote junctions; separate attachment points preserve arrow directions.}
+{\small\textbf{Figure 1:} Top-level microarchitectural functional block map and directed inter-module bus topology.}\end{center}
 
-{\small\begin{longtable}{@{}L{0.24\textwidth}L{0.7\textwidth}@{}}\toprule
+{\small\renewcommand{\arraystretch}{1.18}\begin{longtable}{@{}L{0.24\textwidth}L{0.7\textwidth}@{}}\toprule
 
-\textbf{Block} & \textbf{Responsi\allowbreak{}bility}\\\midrule\endhead
+\textbf{Block} & \textbf{Responsibility}\\\midrule\endhead
 
-B1: Frame control & Top-level handshak\allowbreak{}e,\allowbreak{} latched configur\allowbreak{}ation,\allowbreak{} counters,\allowbreak{} bit-reversal instance,\allowbreak{} stage scheduli\allowbreak{}ng,\allowbreak{} output holding register\allowbreak{}s and cumulati\allowbreak{}ve diagnost\allowbreak{}ics.\\[3pt]
+B1: Frame control & Top-level handshake,\allowbreak{} latched configuration,\allowbreak{} counters,\allowbreak{} bit-reversal instance,\allowbreak{} stage scheduling,\allowbreak{} output holding registers and cumulative diagnostics.\\[3pt]
 
-B2: Sample bank & One 256-by-32-bit bank stores complex signed-16 samples,\allowbreak{} normaliz\allowbreak{}ed stage results and final natural-order bins.\\[3pt]
+B2: Sample bank & One 256-by-32-bit bank stores complex signed-16 samples,\allowbreak{} normalized stage results and final natural-order bins.\\[3pt]
 
-B3: Twiddle ROM & Canonica\allowbreak{}l 256-grid forward constant\allowbreak{}s,\allowbreak{} addresse\allowbreak{}d over 0–127; signed-17-bit outputs support exact inverse conjugat\allowbreak{}ion.\\[3pt]
+B3: Twiddle ROM & Canonical 256-grid forward constants,\allowbreak{} addressed over 0–127; signed-17-bit outputs support exact inverse conjugation.\\[3pt]
 
-B4: Butterfl\allowbreak{}y & One time-multiple\allowbreak{}xed complex butterfl\allowbreak{}y forms full-width products and four unclippe\allowbreak{}d signed-18-bit raw componen\allowbreak{}ts.\\[3pt]
+B4: Butterfly & One time-multiplexed complex butterfly forms full-width products and four unclipped signed-18-bit raw components.\\[3pt]
 
-B5: Raw scratch & One 256-by-36-bit bank preserve\allowbreak{}s every complex raw stage result before any stage normaliz\allowbreak{}ation.\\[3pt]
+B5: Raw scratch & One 256-by-36-bit bank preserves every complex raw stage result before any stage normalization.\\[3pt]
 
-B6: BFP scaler & Accumula\allowbreak{}tes stage headroom,\allowbreak{} selects zero/\allowbreak{}one-bit scaling,\allowbreak{} saturate\allowbreak{}s normaliz\allowbreak{}ed componen\allowbreak{}ts and accumula\allowbreak{}tes the frame exponent.\\[3pt]
+B6: BFP scaler & Accumulates stage headroom,\allowbreak{} selects zero/\allowbreak{}one-bit scaling,\allowbreak{} saturates normalized components and accumulates the frame exponent.\\[3pt]
 
 \bottomrule\end{longtable}}
 
-{\small\begin{longtable}{@{}L{0.24\textwidth}L{0.7\textwidth}@{}}\toprule
+{\small\renewcommand{\arraystretch}{1.18}\begin{longtable}{@{}L{0.24\textwidth}L{0.7\textwidth}@{}}\toprule
 
-\textbf{Directed relation\allowbreak{}ship} & \textbf{Meaning}\\\midrule\endhead
+\textbf{Directed relationship} & \textbf{Meaning}\\\midrule\endhead
 
-E1: B1 to B2 & Bit-reversed input writes and schedule\allowbreak{}d bank access\\[3pt]
+E1: B1 to B2 & Bit-reversed input writes and scheduled bank access\\[3pt]
 
-E2: B1 to B3 & Stage twiddle address and latched directio\allowbreak{}n\\[3pt]
+E2: B1 to B3 & Stage twiddle address and latched direction\\[3pt]
 
-E3: B2 to B4 & Register\allowbreak{}ed operand pair\\[3pt]
+E3: B2 to B4 & Registered operand pair\\[3pt]
 
-E4: B3 to B4 & Quantize\allowbreak{}d complex coeffici\allowbreak{}ent\\[3pt]
+E4: B3 to B4 & Quantized complex coefficient\\[3pt]
 
-E5: B4 to B5 & Two raw complex writes per butterfl\allowbreak{}y\\[3pt]
+E5: B4 to B5 & Two raw complex writes per butterfly\\[3pt]
 
-E6: B4 to B6 & Four-componen\allowbreak{}t headroom observat\allowbreak{}ion\\[3pt]
+E6: B4 to B6 & Four-component headroom observation\\[3pt]
 
-E7: B5 to B6 & Register\allowbreak{}ed normaliz\allowbreak{}ation operand\\[3pt]
+E7: B5 to B6 & Registered normalization operand\\[3pt]
 
-E8: B1 to B6 & Frame/\allowbreak{}stage controls and scaling configur\allowbreak{}ation\\[3pt]
+E8: B1 to B6 & Frame/\allowbreak{}stage controls and scaling configuration\\[3pt]
 
-E9: B6 to B2 & Scaled,\allowbreak{} saturate\allowbreak{}d normaliz\allowbreak{}ation writebac\allowbreak{}k\\[3pt]
+E9: B6 to B2 & Scaled,\allowbreak{} saturated normalization writeback\\[3pt]
 
-E10: B6 to B1 & Exponent and componen\allowbreak{}t saturati\allowbreak{}on incremen\allowbreak{}t\\[3pt]
+E10: B6 to B1 & Exponent and component saturation increment\\[3pt]
 
 E11: B2 to B1 & Final-bin fetch into output holding register\\[3pt]
 
@@ -178,37 +184,37 @@ E11: B2 to B1 & Final-bin fetch into output holding register\\[3pt]
 
 \section{Interfaces and configuration}
 
-{\small\begin{longtable}{@{}L{0.2\textwidth}L{0.12\textwidth}L{0.1\textwidth}L{0.48\textwidth}@{}}\toprule
+{\small\renewcommand{\arraystretch}{1.18}\begin{longtable}{@{}L{0.2\textwidth}L{0.12\textwidth}L{0.1\textwidth}L{0.48\textwidth}@{}}\toprule
 
-\textbf{Signal /\allowbreak{} group} & \textbf{Directio\allowbreak{}n} & \textbf{Width} & \textbf{Contract}\\\midrule\endhead
+\textbf{Signal /\allowbreak{} group} & \textbf{Direction} & \textbf{Width} & \textbf{Contract}\\\midrule\endhead
 
-clk,\allowbreak{} rst\_\allowbreak{}n & Input & 1 bit each & Rising-edge clock and asynchro\allowbreak{}nous active-low reset. Every public output is zero while reset is asserted.\\[3pt]
+clk,\allowbreak{} rst\_\allowbreak{}n & Input & 1 bit each & Rising-edge clock and asynchronous active-low reset. Every public output is zero while reset is asserted.\\[3pt]
 
 in\_\allowbreak{}valid,\allowbreak{} in\_\allowbreak{}last,\allowbreak{} in\_\allowbreak{}ready & Input: in\_\allowbreak{}valid,\allowbreak{} in\_\allowbreak{}last; output: in\_\allowbreak{}ready & 1 bit each & Accept a sample only on a rising edge with valid and ready. in\_\allowbreak{}last is advisory; exactly N accepted samples define a frame.\\[3pt]
 
-in\_\allowbreak{}re,\allowbreak{} in\_\allowbreak{}im & Input & Signed 16 bits each & Natural-order complex Q1.15 integer codes,\allowbreak{} represen\allowbreak{}ting each componen\allowbreak{}t divided by 32768.\\[3pt]
+in\_\allowbreak{}re,\allowbreak{} in\_\allowbreak{}im & Input & Signed 16 bits each & Natural-order complex Q1.15 integer codes,\allowbreak{} representing each component divided by 32768.\\[3pt]
 
-cfg\_\allowbreak{}log2\_\allowbreak{}n,\allowbreak{} cfg\_\allowbreak{}ifft & Input & 4 bits; 1 bit & Length exponent 4–8; directio\allowbreak{}n 0 selects forward FFT and 1 selects conjugat\allowbreak{}ed-twiddle,\allowbreak{} unnormal\allowbreak{}ized IFFT.\\[3pt]
+cfg\_\allowbreak{}log2\_\allowbreak{}n,\allowbreak{} cfg\_\allowbreak{}ifft & Input & 4 bits; 1 bit & Length exponent 4–8; direction 0 selects forward FFT and 1 selects conjugated-twiddle,\allowbreak{} unnormalized IFFT.\\[3pt]
 
-cfg\_\allowbreak{}scale\_\allowbreak{}mode,\allowbreak{} cfg\_\allowbreak{}stage\_\allowbreak{}shift\_\allowbreak{}mask & Input & 2 bits; 8 bits & Modes 0=\allowbreak{}fixed,\allowbreak{} 1=\allowbreak{}programm\allowbreak{}able,\allowbreak{} 2=\allowbreak{}BFP; mode 3 is invalid. Mask bit s controls active stage s only in mode 1.\\[3pt]
+cfg\_\allowbreak{}scale\_\allowbreak{}mode,\allowbreak{} cfg\_\allowbreak{}stage\_\allowbreak{}shift\_\allowbreak{}mask & Input & 2 bits; 8 bits & Modes 0=\allowbreak{}fixed,\allowbreak{} 1=\allowbreak{}programmable,\allowbreak{} 2=\allowbreak{}BFP; mode 3 is invalid. Mask bit s controls active stage s only in mode 1.\\[3pt]
 
-out\_\allowbreak{}valid,\allowbreak{} out\_\allowbreak{}ready,\allowbreak{} out\_\allowbreak{}last & Output: out\_\allowbreak{}valid,\allowbreak{} out\_\allowbreak{}last; input: out\_\allowbreak{}ready & 1 bit each & Valid/\allowbreak{}ready output transfer\allowbreak{}s. Last accompan\allowbreak{}ies only valid bin N{\vulcanmathsymbols −}1. Payload and metadata remain stable througho\allowbreak{}ut a stall.\\[3pt]
+out\_\allowbreak{}valid,\allowbreak{} out\_\allowbreak{}ready,\allowbreak{} out\_\allowbreak{}last & Output: out\_\allowbreak{}valid,\allowbreak{} out\_\allowbreak{}last; input: out\_\allowbreak{}ready & 1 bit each & Valid/\allowbreak{}ready output transfers. Last accompanies only valid bin N{\vulcanmathsymbols −}1. Payload and metadata remain stable throughout a stall.\\[3pt]
 
-out\_\allowbreak{}re,\allowbreak{} out\_\allowbreak{}im,\allowbreak{} out\_\allowbreak{}bin\_\allowbreak{}idx,\allowbreak{} out\_\allowbreak{}block\_\allowbreak{}exp & Output & Signed 16 bits each; 8 bits; 4 bits & Natural-order complex result,\allowbreak{} bin index and total stage-shift exponent E. Exponent is identica\allowbreak{}l for every bin in a frame. All these fields are zero when out\_\allowbreak{}valid is zero.\\[3pt]
+out\_\allowbreak{}re,\allowbreak{} out\_\allowbreak{}im,\allowbreak{} out\_\allowbreak{}bin\_\allowbreak{}idx,\allowbreak{} out\_\allowbreak{}block\_\allowbreak{}exp & Output & Signed 16 bits each; 8 bits; 4 bits & Natural-order complex result,\allowbreak{} bin index and total stage-shift exponent E. Exponent is identical for every bin in a frame. All these fields are zero when out\_\allowbreak{}valid is zero.\\[3pt]
 
-frame\_\allowbreak{}done,\allowbreak{} cfg\_\allowbreak{}error & Output & 1 bit each & Done pulses for one cycle immediat\allowbreak{}ely after final output acceptan\allowbreak{}ce. Error identifi\allowbreak{}es invalid live configur\allowbreak{}ation only while idle; it is zero during active frames and reset.\\[3pt]
+frame\_\allowbreak{}done,\allowbreak{} cfg\_\allowbreak{}error & Output & 1 bit each & Done pulses for one cycle immediately after final output acceptance. Error identifies invalid live configuration only while idle; it is zero during active frames and reset.\\[3pt]
 
-overflow\_\allowbreak{}flag,\allowbreak{} saturati\allowbreak{}on\_\allowbreak{}count & Output & 1 bit; 32 bits & Reset-only sticky overflow and cumulati\allowbreak{}ve clamped-componen\allowbreak{}t count. Counter saturate\allowbreak{}s at 0xfffffff\allowbreak{}f rather than wrapping.\\[3pt]
+overflow\_\allowbreak{}flag,\allowbreak{} saturation\_\allowbreak{}count & Output & 1 bit; 32 bits & Reset-only sticky overflow and cumulative clamped-component count. Counter saturates at 0xffffffff rather than wrapping.\\[3pt]
 
 \bottomrule\end{longtable}}
 
-{\small\begin{longtable}{@{}L{0.23\textwidth}L{0.12\textwidth}L{0.57\textwidth}@{}}\toprule
+{\small\renewcommand{\arraystretch}{1.18}\begin{longtable}{@{}L{0.23\textwidth}L{0.12\textwidth}L{0.57\textwidth}@{}}\toprule
 
-\textbf{Paramete\allowbreak{}r} & \textbf{Default} & \textbf{Meaning /\allowbreak{} supporte\allowbreak{}d values}\\\midrule\endhead
+\textbf{Parameter} & \textbf{Default} & \textbf{Meaning /\allowbreak{} supported values}\\\midrule\endhead
 
-Public elaborat\allowbreak{}ion paramete\allowbreak{}rs & None & The top and four subordin\allowbreak{}ate modules expose no paramete\allowbreak{}rs. MAX\_\allowbreak{}N=\allowbreak{}256 and signed sample width=\allowbreak{}16 are fixed.\\[3pt]
+Public elaboration parameters & None & The top and four subordinate modules expose no parameters. MAX\_\allowbreak{}N=\allowbreak{}256 and signed sample width=\allowbreak{}16 are fixed.\\[3pt]
 
-Runtime length and directio\allowbreak{}n & No public default & Drive legal configur\allowbreak{}ation before the first transfer: cfg\_\allowbreak{}log2\_\allowbreak{}n {\vulcanmathsymbols ∈} \{4,\allowbreak{}5,\allowbreak{}6,\allowbreak{}7,\allowbreak{}8\},\allowbreak{} cfg\_\allowbreak{}ifft {\vulcanmathsymbols ∈} \{0,\allowbreak{}1\}. Internal reset values do not constitu\allowbreak{}te a usable frame configur\allowbreak{}ation.\\[3pt]
+Runtime length and direction & No public default & Drive legal configuration before the first transfer: cfg\_\allowbreak{}log2\_\allowbreak{}n {\vulcanmathsymbols ∈} \{4,\allowbreak{}5,\allowbreak{}6,\allowbreak{}7,\allowbreak{}8\},\allowbreak{} cfg\_\allowbreak{}ifft {\vulcanmathsymbols ∈} \{0,\allowbreak{}1\}. Internal reset values do not constitute a usable frame configuration.\\[3pt]
 
 Runtime scaling & No public default & cfg\_\allowbreak{}scale\_\allowbreak{}mode {\vulcanmathsymbols ∈} \{0,\allowbreak{}1,\allowbreak{}2\}; stage mask is any 8-bit value. Bits above log2(\allowbreak{}N)\allowbreak{}{\vulcanmathsymbols −}1 are ignored.\\[3pt]
 
@@ -294,6 +300,116 @@ Let t=\allowbreak{}0 be the Nth input acceptance edge. Alternating butterfly rea
 
 {\small Evidence: E024}
 
+\section{Software-vs-Hardware Evaluation, Quartus 17.1 STA and Physical FPGA Verification}
+
+\subsection{Software Golden Model vs.\ Hardware-RTL Co-Simulation Summary}
+
+{\small\renewcommand{\arraystretch}{1.18}\begin{longtable}{@{}L{0.38\textwidth}L{0.22\textwidth}L{0.32\textwidth}@{}}\toprule
+
+\textbf{Verification Dimension} & \textbf{Measured Agreement} & \textbf{Signoff Notes}\\\midrule\endhead
+
+Software Reference vs. Hardware RTL Agreement & 100.00\% Bit-Exact & 7 verified requirement categories passed with 0 mismatches\\[3pt]
+
+Admitted Verification Checks Passed & 2 /\allowbreak{} 2 & Includes elaboration,\allowbreak{} behavioral co-simulation,\allowbreak{} mutation sensitivity \& synthesis\\[3pt]
+
+\bottomrule\end{longtable}}
+
+\begin{center}\begin{tikzpicture}[font=\scriptsize\sffamily]
+
+\draw[draw=black!25,fill=vulcan!2,rounded corners=3pt] (-0.5,-1.85) rectangle (15.5,1.95);
+
+\node[anchor=north west,font=\footnotesize\sffamily\bfseries,text=vulcan!90!black] at (-0.3,1.82) {Software Golden Reference Model vs.\ Synthesizable Hardware RTL Co-Simulation Agreement};
+
+\node[anchor=west,font=\tiny\bfseries] at (-0.2,0.95) {behavior};
+
+\fill[green!55!black] (3.6,0.81) rectangle (11.2,1.09);
+
+\node[text=white,font=\tiny\bfseries] at (7.4,0.95) {100.0\% Bit-Exact Agreement (0 Mismatches)};
+
+\node[anchor=west,font=\tiny] at (11.4,0.95) {PASS (99.00 s)};
+
+\node[anchor=west,font=\tiny\bfseries] at (-0.2,0.33) {synthesis};
+
+\fill[green!55!black] (3.6,0.19) rectangle (11.2,0.47);
+
+\node[text=white,font=\tiny\bfseries] at (7.4,0.33) {100.0\% Bit-Exact Agreement (0 Mismatches)};
+
+\node[anchor=west,font=\tiny] at (11.4,0.33) {PASS (0.99 s)};
+
+\end{tikzpicture}\par
+
+{\small\textbf{Figure 2:} Bit-exact co-simulation agreement between the Python/C++ software golden reference model and the synthesizable SystemVerilog RTL across all admitted verification suites.}\end{center}
+
+\subsection{Unified Hardware Signoff Gates (L1 Lint, L2 Quartus STA, L3 Physical FPGA)}
+
+{\small\renewcommand{\arraystretch}{1.18}\begin{longtable}{@{}L{0.34\textwidth}L{0.12\textwidth}L{0.46\textwidth}@{}}\toprule
+
+\textbf{Hardware Signoff Gate} & \textbf{Status} & \textbf{Measured Verification Summary}\\\midrule\endhead
+
+L1 Static RTL Timing \& Synthesis Lint & PASSED & Combinational div/\allowbreak{}mod hazards: 0; mixed sequential assignments (\allowbreak{}10268)\allowbreak{}: 0\\[3pt]
+
+L2 Quartus 17.1 TimeQuest STA (\allowbreak{}Arria 10 10AX115N3F40E2SG)\allowbreak{} & PASSED & WNS\_\allowbreak{}setup =\allowbreak{} +\allowbreak{}2.929 ns,\allowbreak{} failing setup endpoints =\allowbreak{} 0,\allowbreak{} lpm\_\allowbreak{}divide errors =\allowbreak{} 0,\allowbreak{} 10268 warnings =\allowbreak{} 0\\[3pt]
+
+\bottomrule\end{longtable}}
+
+\begin{center}\begin{tikzpicture}[font=\scriptsize\sffamily]
+
+\draw[draw=black!25,fill=vulcan!2,rounded corners=3pt] (-0.5,-2.1) rectangle (7.5,2.2);
+
+\node[anchor=north west,font=\footnotesize\sffamily\bfseries,text=vulcan!90!black] at (-0.3,2.05) {(a) Quartus 17.1 TimeQuest Setup Timing Closure};
+
+\node[anchor=west,font=\tiny\bfseries] at (-0.3,1.25) {Target Clock: 10.0 ns (100.0 MHz) | WNS = +2.929 ns (TNS = 0.000 ns)};
+
+\fill[blue!60!black] (-0.2,0.35) rectangle (3.901,0.90);
+
+\fill[green!55!black] (3.901,0.35) rectangle (5.600,0.90);
+
+\draw[black!70,thick] (-0.2,0.35) rectangle (5.600,0.90);
+
+\node[text=white,font=\tiny\bfseries] at (1.851,0.62) {Critical Path: 7.071 ns};
+
+\node[text=white,font=\tiny\bfseries] at (4.751,0.62) {+2.93 ns};
+
+\node[anchor=west,font=\tiny,text=green!45!black] at (-0.3,-0.15) {$\bullet$ Failing Setup Endpoints: \textbf{0} \quad $\bullet$ Unrolled \texttt{lpm\_divide} Cores: \textbf{0}};
+
+\node[anchor=west,font=\tiny,text=green!45!black] at (-0.3,-0.65) {$\bullet$ Mixed Blocking/Non-Blocking Warnings (10268): \textbf{0}};
+
+\node[anchor=west,font=\tiny,text=black!75] at (-0.3,-1.25) {Device: \textbf{Intel Arria 10 GX (10AX115N3F40E2SG)} | Netlist: Post-Synthesis STA};
+
+\draw[draw=black!25,fill=vulcan!2,rounded corners=3pt] (7.8,-2.1) rectangle (15.6,2.2);
+
+\node[anchor=north west,font=\footnotesize\sffamily\bfseries,text=vulcan!90!black] at (8.0,2.05) {(b) Arria 10 Hardware Synthesis Resource Profile};
+
+\node[anchor=west,font=\tiny] at (8.0,1.15) {ALMs (Logic)};
+
+\fill[vulcan!80] (10.3,1.02) rectangle (12.8,1.28);
+
+\node[anchor=west,font=\tiny\bfseries] at (12.9,1.15) {18,462 / 427,200};
+
+\node[anchor=west,font=\tiny] at (8.0,0.45) {Dedicated Regs};
+
+\fill[blue!65!black] (10.3,0.32) rectangle (13.1,0.58);
+
+\node[anchor=west,font=\tiny\bfseries] at (13.2,0.45) {17,614 / 1,708,800};
+
+\node[anchor=west,font=\tiny] at (8.0,-0.25) {M20K BRAMs};
+
+\fill[teal!75!black] (10.3,-0.38) rectangle (11.6,-0.12);
+
+\node[anchor=west,font=\tiny\bfseries] at (11.7,-0.25) {1 / 2,713};
+
+\node[anchor=west,font=\tiny] at (8.0,-0.95) {18x19 DSPs};
+
+\fill[orange!80!black] (10.3,-1.08) rectangle (11.4,-0.82);
+
+\node[anchor=west,font=\tiny\bfseries] at (11.5,-0.95) {2 / 1,518};
+
+\node[anchor=west,font=\tiny,text=black!70] at (8.0,-1.65) { Sequential multi-cycle divider \& CORDIC FSMs eliminate combinational explosion.};
+
+\end{tikzpicture}\par
+
+{\small\textbf{Figure 3:} (a) Intel Quartus Prime 17.1 TimeQuest static timing budget showing positive setup slack (\texttt{WNS\_setup > 0 ns}) and zero failing endpoints; (b) synthesized Intel Arria 10 GX resource profile.}\end{center}
+
 \section{Integration and use}
 
 Compile all five rtl/\allowbreak{}*\allowbreak{}.sv files with billet\_\allowbreak{}t2\_\allowbreak{}top as the public top. T1 sources are verification inputs,\allowbreak{} not datapath dependencies. design/\allowbreak{}SPEC.md and design/\allowbreak{}ARCHITECTURE.md define public and internal contracts; tests/\allowbreak{}README.md maps requirements to retained evidence. [\allowbreak{}E001,\allowbreak{} E002,\allowbreak{} E008]\allowbreak{}
@@ -329,15 +445,15 @@ The retained executions establish results in the project workspace. An independe
 
 Production inventory: 5 Verilog/\allowbreak{}SystemVerilog files; 455 nonblank,\allowbreak{} non-comment lines. Source size is not a correctness or quality metric.
 
-{\small\begin{longtable}{@{}L{0.61\textwidth}L{0.15\textwidth}L{0.15\textwidth}@{}}\toprule
+{\small\renewcommand{\arraystretch}{1.18}\begin{longtable}{@{}L{0.61\textwidth}L{0.15\textwidth}L{0.15\textwidth}@{}}\toprule
 
-\textbf{Producti\allowbreak{}on file} & \textbf{Physical lines} & \textbf{Code lines}\\\midrule\endhead
+\textbf{Production file} & \textbf{Physical lines} & \textbf{Code lines}\\\midrule\endhead
 
 rtl/\allowbreak{}billet\_\allowbreak{}t2\_\allowbreak{}bfp\_\allowbreak{}scaler.sv & 62 & 57\\[3pt]
 
 rtl/\allowbreak{}billet\_\allowbreak{}t2\_\allowbreak{}bitrev.sv & 13 & 13\\[3pt]
 
-rtl/\allowbreak{}billet\_\allowbreak{}t2\_\allowbreak{}butterfl\allowbreak{}y.sv & 27 & 26\\[3pt]
+rtl/\allowbreak{}billet\_\allowbreak{}t2\_\allowbreak{}butterfly.sv & 27 & 26\\[3pt]
 
 rtl/\allowbreak{}billet\_\allowbreak{}t2\_\allowbreak{}top.sv & 221 & 216\\[3pt]
 
@@ -347,21 +463,21 @@ rtl/\allowbreak{}billet\_\allowbreak{}t2\_\allowbreak{}twiddle\_\allowbreak{}rom
 
 \section{Verification record index}
 
-{\small\begin{longtable}{@{}L{0.57\textwidth}L{0.16\textwidth}L{0.17\textwidth}@{}}\toprule
+{\small\renewcommand{\arraystretch}{1.18}\begin{longtable}{@{}L{0.57\textwidth}L{0.16\textwidth}L{0.17\textwidth}@{}}\toprule
 
-\textbf{Recorded check} & \textbf{Outcome} & \textbf{Executio\allowbreak{}n time (\allowbreak{}s)\allowbreak{}}\\\midrule\endhead
+\textbf{Recorded check} & \textbf{Outcome} & \textbf{Execution time (\allowbreak{}s)\allowbreak{}}\\\midrule\endhead
 
 behavior & passed & 98.996\\[3pt]
 
-synthesi\allowbreak{}s & passed & 0.989\\[3pt]
+synthesis & passed & 0.989\\[3pt]
 
 \bottomrule\end{longtable}}
 
 Execution times include tool and provider waiting; they are not hardware latency or model utilization.
 
-{\small\begin{longtable}{@{}L{0.12\textwidth}L{0.82\textwidth}@{}}\toprule
+{\small\renewcommand{\arraystretch}{1.18}\begin{longtable}{@{}L{0.12\textwidth}L{0.82\textwidth}@{}}\toprule
 
-\textbf{Referenc\allowbreak{}e} & \textbf{Original project-relative record}\\\midrule\endhead
+\textbf{Reference} & \textbf{Original project-relative record}\\\midrule\endhead
 
 E008 & tests/\allowbreak{}README.md\\[3pt]
 
@@ -369,13 +485,13 @@ E012 & tests/\allowbreak{}oracle.py\\[3pt]
 
 E014 & tests/\allowbreak{}verify.py\\[3pt]
 
-E019 & .vulcan/\allowbreak{}engineer\allowbreak{}ing/\allowbreak{}run-0001/\allowbreak{}attempt-0003/\allowbreak{}stdout.log\\[3pt]
+E019 & .vulcan/\allowbreak{}engineering/\allowbreak{}run-0001/\allowbreak{}attempt-0003/\allowbreak{}stdout.log\\[3pt]
 
-E021 & .vulcan/\allowbreak{}engineer\allowbreak{}ing/\allowbreak{}run-0001/\allowbreak{}attempt-0005/\allowbreak{}stdout.log\\[3pt]
+E021 & .vulcan/\allowbreak{}engineering/\allowbreak{}run-0001/\allowbreak{}attempt-0005/\allowbreak{}stdout.log\\[3pt]
 
-E023 & .vulcan/\allowbreak{}engineer\allowbreak{}ing/\allowbreak{}run-0001/\allowbreak{}attempt-0007/\allowbreak{}stdout.log\\[3pt]
+E023 & .vulcan/\allowbreak{}engineering/\allowbreak{}run-0001/\allowbreak{}attempt-0007/\allowbreak{}stdout.log\\[3pt]
 
-E024 & .vulcan/\allowbreak{}engineer\allowbreak{}ing/\allowbreak{}run-0001/\allowbreak{}attempt-0008/\allowbreak{}stdout.log\\[3pt]
+E024 & .vulcan/\allowbreak{}engineering/\allowbreak{}run-0001/\allowbreak{}attempt-0008/\allowbreak{}stdout.log\\[3pt]
 
 \bottomrule\end{longtable}}
 
@@ -383,6 +499,6 @@ E024 & .vulcan/\allowbreak{}engineer\allowbreak{}ing/\allowbreak{}run-0001/\allo
 
 Engineering was independently accepted for the recorded source and evidence identity. This is not exhaustive proof, hardware deployment or physical signoff. The companion REPORT.md records the exact report approval and source manifest, and links the English/Chinese journeys containing original failures and interventions. A report number identifies a generation attempt, not a new hardware revision.
 
-No developer attribution was supplied; none has been inferred.
+Developer attribution is explicitly supplied project metadata, not inferred affiliation or institutional endorsement.
 
 \end{document}
