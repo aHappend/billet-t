@@ -1,0 +1,36 @@
+{
+  "chip": "BILLET-T1",
+  "generation": "Gen-1 (v3.0)",
+  "gate": "quartus_sta",
+  "status": "passed",
+  "device": "10AX115N3F40E2SG",
+  "toolchain": "Quartus Prime Standard 17.1.0 Build 590",
+  "integration_scope": "Full PCIe Gen3x8 + DDR4-2133 Platform Shell (4-Corner Post-Fit STA)",
+  "clock_domains": {
+    "core_100mhz": {
+      "fmax_mhz": 132.96,
+      "wns_ns": 2.479,
+      "whs_ns": 0.013,
+      "target_period_ns": 10.0
+    },
+    "pcie_gen3x8_250mhz": {
+      "fmax_mhz": 278.24,
+      "wns_ns": 0.406,
+      "whs_ns": 0.014,
+      "target_period_ns": 4.0
+    },
+    "ddr4_2133_266mhz": {
+      "fmax_mhz": 276.78,
+      "wns_ns": 0.139,
+      "whs_ns": 0.011,
+      "target_period_ns": 3.752
+    }
+  },
+  "whole_shell_utilization": {
+    "alm": "42,643 / 427,200 ( 10 % )",
+    "dsp_blocks": "3 / 1,518 ( < 1 % )",
+    "m20k_ram_blocks": "189 / 2,713 ( 7 % )",
+    "registers": "90769"
+  },
+  "programmed_image_sha256": "b78ee9218a29fbd447707eb1d3e93ae63036f5add9e5858f5a3293e809180898"
+}

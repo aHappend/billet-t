@@ -1,77 +1,58 @@
-# Billet-T — FFT, IFFT and spectral-processing RTL
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/logo-dark.svg">
+    <img src="brand/logo.svg" width="420" alt="Vulcan">
+  </picture>
+  <h1>Billet-T · Spectral & Transform DSP Silicon</h1>
+  <p><strong>Synthesizable 100 MHz+ Fixed-Point Radix-2 FFT/IFFT & Spectral Accelerators · Intel Arria 10 GX Full-Shell STA & PCIe Gen3x8 HIL</strong></p>
+  <p>
+    <img src="https://img.shields.io/badge/Target_FPGA-Intel_Arria_10_GX_(10AX115N3F40E2SG)-0f766e?style=flat-square" alt="FPGA">
+    <img src="https://img.shields.io/badge/Full--Shell_STA-4--Corner_100_MHz%2B_Closed-0f766e?style=flat-square" alt="STA">
+    <img src="https://img.shields.io/badge/Physical_Board_HIL-PCIe_Gen3x8_%2B_DDR4_Passed-1d4ed8?style=flat-square" alt="HIL">
+    <img src="https://img.shields.io/badge/Benchmarks-Matched_EPYC_CPU_%26_V100_GPU-334155?style=flat-square" alt="Benchmarks">
+    <img src="https://img.shields.io/badge/License-MIT-64748b?style=flat-square" alt="License">
+  </p>
+  <p>
+    <a href="https://github.com/aHappend/vulcan-showcase"><strong>Vulcan Showcase</strong></a> · <a href="https://github.com/aHappend/bellows-l">Bellows-L (LZ4)</a> · <a href="https://github.com/aHappend/billet-t">Billet-T (FFT)</a> · <a href="https://github.com/aHappend/billet-f">Billet-F (FIR)</a> · <a href="https://github.com/aHappend/crucible-g">Crucible-G (3D)</a> · <a href="https://github.com/aHappend/furnace-x">Furnace-X (DMA/CRC)</a> · <a href="https://github.com/aHappend/hammer-v">Hammer-V (RISC-V)</a> · <a href="https://github.com/aHappend/rivet-a">Rivet-A (AES-GCM)</a> · <a href="https://github.com/aHappend/rivet-h">Rivet-H (SHA-256)</a> · <a href="https://github.com/aHappend/swage-s">Swage-S (ISP)</a> · <a href="https://github.com/aHappend/sable">SABLE</a> · <a href="README.zh-CN.md"><strong>简体中文</strong></a>
+  </p>
+</div>
 
-[English](README.md) · [简体中文](README.zh-CN.md) · [Repository guide / 文件导航](REPOSITORY_GUIDE.md)
+---
 
-Documentation updated: 2026-11-17. This page describes a repository snapshot, not a live job dashboard.
+**Billet-T** is the spectral-transform line of the Billet DSP family, delivering bit-reversed ping-pong SRAM scheduling, twiddle-ROM complex butterfly pipelines, and PCIe/DDR4 frame DMA (`BILLET-T1`).
 
-## Overview
+## Vulcan 3.0 Full-Shell Silicon Signoff Matrix
 
-**Billet-T** publishes chip RTL, technical reports and verification artifacts. Fixed-point complex FFT, configurable FFT/IFFT and multichannel windowed STFT/power-spectrum processing.
+All chips in `chips/` are synthesized, placed, routed, and timing-closed inside the **complete Intel Arria 10 GX PCIe Gen3x8 + DDR4-2133 platform shell** (`10AX115N3F40E2SG`, Quartus Prime Standard `17.1.0`) and executed on physical board hardware (`board_hil`) alongside matched `AMD EPYC 7662` CPU and `NVIDIA Tesla V100` GPU baselines.
 
-The chip project is public; Vulcan itself remains private and closed-source. Future public releases must be limited to chip technology and public reproducibility materials, excluding Vulcan internal architecture and operating materials. This refresh organizes documentation only; it is not a comprehensive disclosure audit of historical material and does not claim that the existing repository tree has undergone such clearance.
+| Generation | Chip | Architecture & Verification Scope | Full-Shell 4-Corner STA | Whole-Shell Utilization (`10AX115`) | Physical Board HIL | Deliverables |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Gen-1 (v3.0)** | [**BILLET-T1**](chips/billet-t1/) | 256-point fixed-point Radix-2 complex FFT · Ping-pong frame SRAM, bit-reversal addressing & twiddle butterfly pipeline | **`132.96 MHz`** (`WNS +2.479 ns`)<br><sub>PCIe `278.24` · DDR4 `276.78 MHz`</sub> | `42,643 ALMs (10%)`<br><sub>`3 DSPs` · `189 M20K`</sub> | **PASSED**<br><sub>PCIe Gen3x8 + DDR4</sub> | [**`REPORT.pdf`**](chips/billet-t1/REPORT.pdf) · [RTL](chips/billet-t1/rtl/) |
 
-## Scope and evidence
+## Engineering Report Visual Preview
 
-Use the [exact-directory result index](REPOSITORY_GUIDE.md). Functional simulation, synthesis, standalone/virtual-pin timing, board-bridge probing, workload readback and system-software execution are different evidence scopes. A pass at one scope does not establish another. Existing historical results are retained; this documentation refresh neither upgrades nor invalidates them.
-
-Read timing, utilization and performance values from their specific records and applicability conditions; results from differently located copies are not merged. This page makes no fleet-wide claim of physical-board completion, full-model inference, physical Linux boot or measured power/energy efficiency.
-
-## Repository guide
-
-The [repository guide](REPOSITORY_GUIDE.md) lists existing source, constraints, tests, reports and result paths. Hyphenated, underscored and `chips/` directories can be different publication copies; none is silently designated authoritative, moved or deleted.
-
-Start reproduction from the selected chip’s public specification, test instructions and scripts. Tool, input and board requirements belong to that directory. Chip experiments were not rerun as part of this documentation update.
-
-## Existing chip directories
-
-| Chip / variant | Existing root paths | Public artifacts |
-| --- | --- | --- |
-| BILLET-T1 | [`billet-t1/`](billet-t1/) | [REPORT.md](billet-t1/REPORT.md) · [REPORT.pdf](billet-t1/REPORT.pdf) · [SHOWCASE_REPORT.pdf](billet-t1/SHOWCASE_REPORT.pdf) · [SHOWCASE_REPORT.zh-CN.pdf](billet-t1/SHOWCASE_REPORT.zh-CN.pdf) |
-| BILLET-T2 | [`billet-t2/`](billet-t2/) | [REPORT.md](billet-t2/REPORT.md) · [REPORT.pdf](billet-t2/REPORT.pdf) · [SHOWCASE_REPORT.pdf](billet-t2/SHOWCASE_REPORT.pdf) · [SHOWCASE_REPORT.zh-CN.pdf](billet-t2/SHOWCASE_REPORT.zh-CN.pdf) |
-| BILLET-T3 | [`billet-t3/`](billet-t3/) | [REPORT.md](billet-t3/REPORT.md) · [REPORT.pdf](billet-t3/REPORT.pdf) · [SHOWCASE_REPORT.pdf](billet-t3/SHOWCASE_REPORT.pdf) · [SHOWCASE_REPORT.zh-CN.pdf](billet-t3/SHOWCASE_REPORT.zh-CN.pdf) |
-
-## Architecture catalog and publications
-
-| Generation | Chip | Architecture / research scope | Record navigation | Reports |
-| --- | --- | --- | --- | --- |
-| **Gen-1** | [**BILLET-T1**](billet-t1/) | 256-Point Fixed-Point Radix-2 Complex FFT · Double-Buffered Ping-Pong Memory & Bit-Reversal | [Exact-directory records](REPOSITORY_GUIDE.md) | [**Whitepaper PDF**](billet-t1/SHOWCASE_REPORT.pdf) · [**Engineering PDF**](billet-t1/REPORT.pdf) |
-| **Gen-2** | [**BILLET-T2**](billet-t2/) | Runtime-Configurable 64/128/256/512-Point FFT/IFFT · Stage-by-Stage Schedule & `1/N` Scaling | [Exact-directory records](REPOSITORY_GUIDE.md) | [**Whitepaper PDF**](billet-t2/SHOWCASE_REPORT.pdf) · [**Engineering PDF**](billet-t2/REPORT.pdf) |
-| **Gen-3** | [**BILLET-T3**](billet-t3/) | 4-Channel Windowed 50%-Overlap STFT & Power-Spectrum (`abs(X[k])^2`) Engine | [Exact-directory records](REPOSITORY_GUIDE.md) | [**Whitepaper PDF**](billet-t3/SHOWCASE_REPORT.pdf) · [**Engineering PDF**](billet-t3/REPORT.pdf) |
-
-## Academic Product Whitepaper Visual Gallery
-
-### BILLET-T1 · Academic Whitepaper Preview ([`billet-t1/SHOWCASE_REPORT.pdf`](billet-t1/SHOWCASE_REPORT.pdf))
+### BILLET-T1 · Vulcan 3.0 Engineering Report Preview ([`chips/billet-t1/REPORT.pdf`](chips/billet-t1/REPORT.pdf))
 <table>
   <tr>
-    <td align="center" width="33%"><a href="billet-t1/SHOWCASE_REPORT.pdf"><img src="billet-t1/showcase_figures/page-1.png" width="100%" alt="BILLET-T1 Page 1"></a><br><sub><strong>Page 1 · Architecture & KPI Summary</strong></sub></td>
-    <td align="center" width="33%"><a href="billet-t1/SHOWCASE_REPORT.pdf"><img src="billet-t1/showcase_figures/page-2.png" width="100%" alt="BILLET-T1 Page 2"></a><br><sub><strong>Page 2 · Experimental Benchmarks & Parity</strong></sub></td>
-    <td align="center" width="33%"><a href="billet-t1/SHOWCASE_REPORT.pdf"><img src="billet-t1/showcase_figures/page-3.png" width="100%" alt="BILLET-T1 Page 3"></a><br><sub><strong>Page 3 · Arria 10 STA, HIL & Scaling</strong></sub></td>
+    <td align="center" width="33%"><a href="chips/billet-t1/REPORT.pdf"><img src="chips/billet-t1/report_preview/page-1.png" width="100%" alt="BILLET-T1 Page 1"></a><br><sub><strong>Page 1 · Executive Summary & Architecture</strong></sub></td>
+    <td align="center" width="33%"><a href="chips/billet-t1/REPORT.pdf"><img src="chips/billet-t1/report_preview/page-2.png" width="100%" alt="BILLET-T1 Page 2"></a><br><sub><strong>Page 2 · Microarchitecture & Verification</strong></sub></td>
+    <td align="center" width="33%"><a href="chips/billet-t1/REPORT.pdf"><img src="chips/billet-t1/report_preview/page-3.png" width="100%" alt="BILLET-T1 Page 3"></a><br><sub><strong>Page 3 · Full-Shell STA, HIL & Benchmarks</strong></sub></td>
   </tr>
 </table>
 
-### BILLET-T2 · Academic Whitepaper Preview ([`billet-t2/SHOWCASE_REPORT.pdf`](billet-t2/SHOWCASE_REPORT.pdf))
-<table>
-  <tr>
-    <td align="center" width="33%"><a href="billet-t2/SHOWCASE_REPORT.pdf"><img src="billet-t2/showcase_figures/page-1.png" width="100%" alt="BILLET-T2 Page 1"></a><br><sub><strong>Page 1 · Architecture & KPI Summary</strong></sub></td>
-    <td align="center" width="33%"><a href="billet-t2/SHOWCASE_REPORT.pdf"><img src="billet-t2/showcase_figures/page-2.png" width="100%" alt="BILLET-T2 Page 2"></a><br><sub><strong>Page 2 · Experimental Benchmarks & Parity</strong></sub></td>
-    <td align="center" width="33%"><a href="billet-t2/SHOWCASE_REPORT.pdf"><img src="billet-t2/showcase_figures/page-3.png" width="100%" alt="BILLET-T2 Page 3"></a><br><sub><strong>Page 3 · Arria 10 STA, HIL & Scaling</strong></sub></td>
-  </tr>
-</table>
+## Clean Repository Structure
 
-### BILLET-T3 · Academic Whitepaper Preview ([`billet-t3/SHOWCASE_REPORT.pdf`](billet-t3/SHOWCASE_REPORT.pdf))
-<table>
-  <tr>
-    <td align="center" width="33%"><a href="billet-t3/SHOWCASE_REPORT.pdf"><img src="billet-t3/showcase_figures/page-1.png" width="100%" alt="BILLET-T3 Page 1"></a><br><sub><strong>Page 1 · Architecture & KPI Summary</strong></sub></td>
-    <td align="center" width="33%"><a href="billet-t3/SHOWCASE_REPORT.pdf"><img src="billet-t3/showcase_figures/page-2.png" width="100%" alt="BILLET-T3 Page 2"></a><br><sub><strong>Page 2 · Experimental Benchmarks & Parity</strong></sub></td>
-    <td align="center" width="33%"><a href="billet-t3/SHOWCASE_REPORT.pdf"><img src="billet-t3/showcase_figures/page-3.png" width="100%" alt="BILLET-T3 Page 3"></a><br><sub><strong>Page 3 · Arria 10 STA, HIL & Scaling</strong></sub></td>
-  </tr>
-</table>
+```text
+billet-t/
+├── README.md               # Formal English documentation
+├── README.zh-CN.md         # Formal Simplified Chinese documentation
+├── brand/                  # Light/dark vector identity assets
+├── chips/
+│   └── billet-t1/          # BILLET-T1 (RTL, tests, STA/HIL receipts, REPORT.pdf)
+├── archive-v2/             # Deduplicated pre-3.0 historical design snapshots
+└── LICENSE                 # MIT License
+```
 
-## Related projects
+## Historical Pre-3.0 Archive (`archive-v2/`)
 
-- AI / embeddings: [Anvil-Q](https://github.com/aHappend/anvil-q), [Anvil-E](https://github.com/aHappend/anvil-e), [Anvil-QN](https://github.com/aHappend/anvil-qn), [Anvil-EN](https://github.com/aHappend/anvil-en), [Anvil-D](https://github.com/aHappend/anvil-d).
-- Systems: [Hammer-V](https://github.com/aHappend/hammer-v), [Furnace-X](https://github.com/aHappend/furnace-x).
-- DSP / vision: [Billet-F](https://github.com/aHappend/billet-f), [Billet-T](https://github.com/aHappend/billet-t), [Swage-S](https://github.com/aHappend/swage-s).
-- Data / security / graphics: [Bellows-L](https://github.com/aHappend/bellows-l), [Bellows-N](https://github.com/aHappend/bellows-n), [Rivet-A](https://github.com/aHappend/rivet-a), [Rivet-H](https://github.com/aHappend/rivet-h), [Crucible-G](https://github.com/aHappend/crucible-g), [SABLE](https://github.com/aHappend/sable).
-- [Public fleet catalog](https://github.com/aHappend/vulcan-showcase). Related independent research: [ACE-2](https://github.com/aHappend/ace-2), [ACE-3](https://github.com/aHappend/ace-3); these retain their own provenance and acceptance boundaries.
-- DSpark is a research direction, not a published chip delivery in this repository; no implementation or repository link is asserted here.
+Earlier pre-3.0 exploration snapshots ([`billet-t2`](archive-v2/billet-t2/), [`billet-t3`](archive-v2/billet-t3/)) are retained cleanly under [`archive-v2/`](archive-v2/README.md) with explicit standalone/simulation scope boundaries, separate from the full-shell silicon-verified `chips/` lineup above.

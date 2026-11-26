@@ -1,5 +1,4 @@
 __pycache__/
 *.pyc
-evidence/
-*.vvp
-*.vcd
+.DS_Store
+.vulcan/
