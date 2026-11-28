@@ -1,0 +1,18 @@
+{
+  "schema": "vulcan-longspeak-sources/v1",
+  "sources": [
+    "rtl/billet_t1_pkg.sv",
+    "rtl/billet_t1_bitrev.sv",
+    "rtl/billet_t1_twiddle_rom.sv",
+    "rtl/billet_t1_butterfly.sv",
+    "rtl/billet_t1_buffer_sched.sv",
+    "rtl/billet_t1_top.sv",
+    "rtl/billet_t1_reset_sync.sv",
+    "rtl/billet_t1_mailbox.sv",
+    "rtl/billet_t1_frame_ram.sv",
+    "rtl/billet_t1_role_dma.sv",
+    "rtl/Role_BilletT1.sv",
+    "rtl/vulcan_role.sv",
+    "rtl/vulcan_role.sdc"
+  ]
+}

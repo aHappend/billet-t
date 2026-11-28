@@ -27,10 +27,10 @@
     }
   },
   "whole_shell_utilization": {
-    "alm": "42,643 / 427,200 ( 10 % )",
+    "alm": "42,670 / 427,200 ( 10 % )",
     "dsp_blocks": "3 / 1,518 ( < 1 % )",
     "m20k_ram_blocks": "189 / 2,713 ( 7 % )",
-    "registers": "90769"
+    "registers": "90638"
   },
   "programmed_image_sha256": "b78ee9218a29fbd447707eb1d3e93ae63036f5add9e5858f5a3293e809180898"
 }

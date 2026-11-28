@@ -16,12 +16,12 @@ This directory contains the **Vulcan 3.0 full-shell silicon release** of `BILLET
 | **Platform Integration Scope** | Full PCIe Gen3x8 + DDR4-2133 Platform Shell (All 95 Active Clocks Closed) |
 | **Core Clock STA (`100 MHz` Target)** | **`132.96 MHz`** (`WNS +2.479 ns`, `WHS +0.013 ns`) |
 | **PCIe / DDR4 Clock Closure** | PCIe `coreclkout`: **`278.24 MHz`** · DDR4 `usr_clk`: **`276.78 MHz`** |
-| **Whole-Shell Resource Utilization** | `42,643 / 427,200 ( 10 % ) ALMs` · `3 / 1,518 ( < 1 % ) DSPs` · `189 / 2,713 ( 7 % ) M20K` |
-| **Physical Board HIL (`PCIe Gen3x8 + DDR4`)** | **PASSED** (`rpd_sha256: b78ee9218a29fbd4…`) |
+| **Whole-Shell Resource Utilization** | `42,670 / 427,200 ( 10 % ) ALMs` · `3 / 1,518 ( < 1 % ) DSPs` · `189 / 2,713 ( 7 % ) M20K` |
+| **Physical Board HIL (`PCIe Gen3x8 + DDR4`)** | **PASSED** (`rpd_sha256: b78ee9218a29fbd4…`, `3` deterministic runs) |
 
 ## Directory Contents
 
 - [`REPORT.pdf`](REPORT.pdf) — Complete engineering report (architecture, RTL design, verification matrix, 4-corner STA, physical HIL, and matched CPU/GPU benchmarks)
-- [`rtl/`](rtl/) — Synthesizable SystemVerilog RTL and timing constraints (`13` files: `Role_BilletT1.sv`, `billet_t1_bitrev.sv`, `billet_t1_buffer_sched.sv`, `billet_t1_butterfly.sv`, `billet_t1_frame_ram.sv`, `billet_t1_mailbox.sv`, `billet_t1_pkg.sv`, `billet_t1_reset_sync.sv`, `billet_t1_role_dma.sv`, `billet_t1_top.sv`, `billet_t1_twiddle_rom.sv`, `vulcan_role.sdc`, `vulcan_role.sv`)
-- [`tests/`](tests/) — Verification testbenches, reference models, and matched CPU/GPU benchmark harnesses (`10` files)
+- [`rtl/`](rtl/) — Synthesizable SystemVerilog RTL and timing constraints (`14` files)
+- [`tests/`](tests/) — Verification testbenches, reference models, and matched CPU/GPU/HIL harnesses (`13` files)
 - [`evidence/`](evidence/) — Public post-fit STA ([`quartus-sta-summary.json`](evidence/quartus-sta-summary.json)) and physical board HIL ([`board-hil-summary.json`](evidence/board-hil-summary.json)) receipts

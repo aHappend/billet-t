@@ -2,16 +2,16 @@
   "platform_id": "netsys17",
   "execution_policy": "existing_bridge_native",
   "original_app1_magic": "0x4655524e41435831",
-  "sdk_tools": "C:\\Users\\author\\Catapult\\BoardTestPackages\\5.25.5.1\\retail-amd64\\Tools",
+  "sdk_tools": "C:\\Users\\v-sufengguo\\Catapult\\BoardTestPackages\\5.25.5.1\\retail-amd64\\Tools",
   "sdk_hashes": {
     "FPGACoreLib.dll": "41b2781d04a2864d59c8c772acd4098c52dabc2c5a822f4fcd51aff858cd9acb",
     "FpgaDiagnostics.exe": "cae0d6d2c4815b072ae538910641da30b58668252f0c783c4ad5c07b1ce8d4be",
     "FpgaJtagReconfig.dll": "f6c8dddfeb82c3ff7d3fa021fa4577ffe416f28c8f110d03e21a6734b0c9816d"
   },
   "powershell": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-  "windows_python": "C:\\Users\\author\\AppData\\Local\\Vulcan\\BridgeRuntime\\python-3.14.10-vulcan-1.0.17-d826436224af\\python.exe",
+  "windows_python": "C:\\Users\\v-sufengguo\\AppData\\Local\\Vulcan\\BridgeRuntime\\python-3.14.10-vulcan-1.0.17-d826436224af\\python.exe",
   "windows_python_binding": {
-    "path": "C:\\Users\\author\\AppData\\Local\\Vulcan\\BridgeRuntime\\python-3.14.10-vulcan-1.0.17-d826436224af\\python.exe",
+    "path": "C:\\Users\\v-sufengguo\\AppData\\Local\\Vulcan\\BridgeRuntime\\python-3.14.10-vulcan-1.0.17-d826436224af\\python.exe",
     "sha256": "d718435b892db4ad5b547d12fec61be7baa7faf7a58d857ea58053be24c7a000",
     "bytes": 106208
   },

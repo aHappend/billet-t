@@ -4,9 +4,9 @@
   "gate": "board_hil",
   "status": "passed",
   "device": "10AX115N3F40E2SG",
-  "interface": "PCIe Gen3x8 MMIO + 8 GiB DDR4-2133 DMA",
+  "interface": "PCIe Gen3x8 MMIO/DMA + DDR4-2133",
   "programmed_image_sha256": "b78ee9218a29fbd447707eb1d3e93ae63036f5add9e5858f5a3293e809180898",
   "deterministic_across_runs": true,
   "physical_runs_verified": 3,
-  "timestamp_utc": "2026-11-25T17:33:32.042633+00:00"
+  "timestamp_utc": "2026-11-26T23:03:01.065318+00:00"
 }
